@@ -16,6 +16,11 @@ from .utils import data_loader
 from .utils import charts_generator
 import plotly.express as px
 import plotly.io as pio
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 # import logging
 
@@ -55,9 +60,9 @@ class LogoutUserView(View):
         logout(request)
         return redirect('login')
 
-@require_GET
-@login_required
-def overview(request):
+@csrf_exempt
+@require_POST
+def overviewMap(request):
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -87,18 +92,7 @@ def overview(request):
         'lat': charger_data['latitude'].tolist(),
         'lon': charger_data['longitude'].tolist(),
         'color': charger_data['marker_color'].tolist(),
-        # 'name': charger_data['evCpId'].tolist()
     })
-
-    # overview_map = charts_generator.create_plotly_map(charger_data)
-    # # Convert the map to JSON 
-    # map_json = pio.to_json(overview_map)
-
-
-    # overview_map = charts_generator.create_map(charger_data)._repr_html_()
-
-    # # Convert the map to JSON
-    # map_json = overview_map._to_json()
 
     context = {
         'locations_utilised': locations_utilised, #str
@@ -110,7 +104,8 @@ def overview(request):
         'total_active_charging_points': total_active_charging_points, #str
         'map_data_json': map_data_json,
     }
-    return render(request, "overview.html", context)
+
+    return JsonResponse(map_data_json, safe=False)
 
 @require_GET
 @login_required
@@ -301,4 +296,3 @@ def users(request):
     }
 
     return render(request, "users.html", context)
-

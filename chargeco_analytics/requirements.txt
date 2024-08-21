@@ -7,3 +7,4 @@ branca
 numpy
 openpyxl
 Django>=3.2,<4.0
+django-cors-headers

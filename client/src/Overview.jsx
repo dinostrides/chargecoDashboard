@@ -22,6 +22,7 @@ import Legend from "./components/Legend";
 import LeafletMap from "./components/LeafletMap";
 import OverviewCard from "./components/cards/OverviewCard";
 import SortableTable from './components/SortableTable'
+import axios from 'axios';
 
 function Overview() {
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
@@ -36,6 +37,39 @@ function Overview() {
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
   }
+
+  useEffect(()=> {
+    const fetchData = async () => {
+      try {
+        const response = await axios.post('http://localhost:8000/overviewMap/')
+        console.log(response.data)
+      // Sample data from django
+      //   {
+      //     "lat": [
+      //         1.3604012,
+      //         1.3114387,
+      //         1.3114387
+      //     ],
+      //     "lon": [
+      //         103.9466004,
+      //         103.9466004,
+      //         103.9466004
+      //     ],
+      //     "color": [
+      //         "Green",
+      //         "Green",
+      //         "Green"
+      //     ]
+      // }
+      }
+      catch(error) {
+        console.log(error.message)
+      }
+    }
+
+    fetchData();
+    
+  }, [])
 
   return (
     <>
