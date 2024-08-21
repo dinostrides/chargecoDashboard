@@ -16,24 +16,36 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Function to generate random coordinates around Singapore
-const getRandomCoordinates = () => {
-  const lat = 1.3521 + (Math.random() - 0.5) * 0.1; // Roughly within 0.05 degrees latitude of Singapore
-  const lng = 103.8198 + (Math.random() - 0.5) * 0.1; // Roughly within 0.05 degrees longitude of Singapore
-  return [lat, lng];
-};
+// LeafletMap component
+const LeafletMap = ({ lat = [], lon = [], color = [] }) => {
 
-// Generate 10 random markers
-const markers = Array.from({ length: 10 }, () => getRandomCoordinates());
+  // Ensure lat, lon, and color are valid arrays and have the same length
+  if (!Array.isArray(lat) || !Array.isArray(lon) || !Array.isArray(color) ||
+      lat.length !== lon.length || lat.length !== color.length) {
+    console.error('Invalid data provided for lat, lon, or color.');
+    return null;
+  }
 
-const LeafletMap = () => {
+  const markers = lat.map((latitude, index) => ({
+    position: [latitude, lon[index]],
+    color: color[index],
+  }));
+
   return (
     <MapContainer center={[1.3521, 103.8198]} zoom={13} style={{ height: '100%', width: '100%', minHeight: '600px' }}>
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
       />
-      {markers.map((position, index) => (
-        <Marker key={index} position={position}>
+      {markers.map((marker, index) => (
+        <Marker
+          key={index}
+          position={marker.position}
+          icon={L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="background-color: ${marker.color}; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+            iconSize: [20, 20],
+          })}
+        >
           <Popup>
             Marker {index + 1}
           </Popup>

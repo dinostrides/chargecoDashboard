@@ -29,6 +29,7 @@ function Overview() {
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
   const [locationStatus, setLocationStatus] = useState();
   const [powerType, setPowerType] = useState("");
+  const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
 
   const handleLocationStatusChange = (event) => {
     setLocationStatus(event.target.value);
@@ -42,25 +43,9 @@ function Overview() {
     const fetchData = async () => {
       try {
         const response = await axios.post('http://localhost:8000/overviewMap/')
-        console.log(response.data)
-      // Sample data from django
-      //   {
-      //     "lat": [
-      //         1.3604012,
-      //         1.3114387,
-      //         1.3114387
-      //     ],
-      //     "lon": [
-      //         103.9466004,
-      //         103.9466004,
-      //         103.9466004
-      //     ],
-      //     "color": [
-      //         "Green",
-      //         "Green",
-      //         "Green"
-      //     ]
-      // }
+        const dataString = response.data
+        const data = JSON.parse(dataString)
+        setMapData(data);
       }
       catch(error) {
         console.log(error.message)
@@ -238,7 +223,7 @@ function Overview() {
                       flexGrow: 1
                     }}
                   >
-                    <LeafletMap />
+                    <LeafletMap lat={mapData.lat} lon={mapData.lon} color={mapData.color} />
                   </Box>
                 </CardContent>
               </Card>
