@@ -79,9 +79,20 @@ def overview(request):
     total_active_locations = str(len(charger_data['name'].unique()))
     total_active_charging_points = str(len(charger_data['evCpId'].unique()))
 
-    overview_map = charts_generator.create_plotly_map(charger_data)
-    # Convert the map to JSON 
-    map_json = pio.to_json(overview_map)
+    # Determine marker color based on conditions
+    charger_data['marker_color'] = charger_data.apply(lambda row: 'red' if pd.isna(row['evCpId']) else 'Orange' if "Coming Soon" in str(row['name']) else 'Green', axis=1)
+
+    # Convert relevant data to JSON
+    map_data_json = json.dumps({
+        'lat': charger_data['latitude'].tolist(),
+        'lon': charger_data['longitude'].tolist(),
+        'color': charger_data['marker_color'].tolist(),
+        # 'name': charger_data['evCpId'].tolist()
+    })
+
+    # overview_map = charts_generator.create_plotly_map(charger_data)
+    # # Convert the map to JSON 
+    # map_json = pio.to_json(overview_map)
 
 
     # overview_map = charts_generator.create_map(charger_data)._repr_html_()
@@ -97,8 +108,7 @@ def overview(request):
         'charger_utilisation_df': charger_utilisation.to_html(index=False, classes="dataframe"), #str
         'total_active_locations': total_active_locations, #str
         'total_active_charging_points': total_active_charging_points, #str
-        'map': map_json #JSON
-        # 'map_json': json.dumps(map_json) # Pass the map as a JSON string
+        'map_data_json': map_data_json,
     }
     return render(request, "overview.html", context)
 

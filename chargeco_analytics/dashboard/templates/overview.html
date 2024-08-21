@@ -193,29 +193,43 @@
                     <h1>{{total_active_charging_points}}</h1>
                 </div>
             </div>
-            <!-- <div class="content">
+            <div class="content">
                 <div id="map">
-                    {{ map|safe }}
                 </div>
-            </div> -->
+            </div>
         </div>
     </div>
 
     <script>
         // Parse the JSON data from the backend
-        try {
-            var mapData = JSON.parse('{{ map|escapejs }}');
-        } catch (e) {
-            console.error("Parsing error:", e);
-        }
+        var mapData = JSON.parse('{{ map_data_json|escapejs }}');
 
-        // Check if mapData is correctly parsed
-        if (mapData && mapData.data && mapData.layout) {
-            // Render the map using Plotly
-            Plotly.newPlot('map', mapData.data, mapData.layout);
-        } else {
-            console.error("mapData is not defined or malformed.");
-        }
+        // Construct data for Plotly
+        var plotlyData = [{
+            type: 'scattermapbox',
+            lat: mapData.lat,
+            lon: mapData.lon,
+            mode: 'markers',
+            marker: {
+                color: mapData.color,
+                size: 10
+            },
+            text: mapData.name,
+            hoverinfo: 'text',
+        }];
+
+        // Define layout for the map
+        var layout = {
+            mapbox: {
+                style: "carto-positron",
+                center: { lat: 1.3765401823882508, lon: 103.85805501383963 },
+                zoom: 11
+            },
+            margin: { r: 0, t: 0, b: 0, l: 0 },
+        };
+
+        // Render the Plotly map
+        Plotly.newPlot('map', plotlyData, layout);
     </script>
 
 </body>
