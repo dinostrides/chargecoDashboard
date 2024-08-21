@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ChargEco Analytics</title>
+    <!-- Load static files -->
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #212121; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h4 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .logout-form {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .logout-form input[type="submit"] {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .logout-form input[type="submit"]:hover {
+            background-color: #c82333;
+        }
+        .header {
+            width: 100%;
+            background-color: #4CAF50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: center;
+        }
+        .navbar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            width: 100%;
+        }
+        .navbar ul li {
+            flex: 1;
+        }
+        .navbar ul li a {
+            display: block;
+            padding: 15px;
+            font-size: larger;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+        }
+        .navbar ul li a:hover,
+        .navbar ul li a.active {
+            background-color: #3e8e41;
+        }
+        .content {
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <form method="POST" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <input type="submit" value="Log Out">
+    </form>
+    <div class="header">
+        <div class="navbar">
+            <ul>
+                <li><a href="{% url 'overview' %}" class="{% if request.path == '/overview/' %}active{% endif %}">Overview</a></li>
+                <li><a href="{% url 'utilisation' %}" class="{% if request.path == '/utilisation/' %}active{% endif %}">Utilisation</a></li>
+                <li><a href="{% url 'by_station' %}" class="{% if request.path == '/by_station/' %}active{% endif %}">By Station</a></li>
+                <li><a href="{% url 'billing' %}" class="{% if request.path == '/billing/' %}active{% endif %}">Billing</a></li>
+                <li><a href="{% url 'pricing' %}" class="{% if request.path == '/pricing/' %}active{% endif %}">Pricing</a></li>
+                <li><a href="{% url 'users' %}" class="{% if request.path == '/users/' %}active{% endif %}">Users</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="content">
+        <h1>User Analysis</h1>
+    
+        <!-- User Breakdown Section -->
+        <div class="summary-container" style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+            <div class="summary-item" style="text-align: center; width: 18%; background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h3>{{ num_public }}</h3>
+                <p>Public Users</p>
+            </div>
+            <div class="summary-item" style="text-align: center; width: 18%; background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h3>{{ num_fleet }}</h3>
+                <p>Fleet Users</p>
+            </div>
+            <div class="summary-item" style="text-align: center; width: 18%; background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h3>{{ num_member }}</h3>
+                <p>Member Users</p>
+            </div>
+            <div class="summary-item" style="text-align: center; width: 18%; background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h3>{{ num_partner }}</h3>
+                <p>Partner Users</p>
+            </div>
+            <div class="summary-item" style="text-align: center; width: 18%; background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h3>{{ num_total }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+    
+        <!-- User Donut Chart -->
+        <div class="chart-container" style="margin-bottom: 30px;">
+            <h2>User Type Distribution</h2>
+            <div id="user-donut-chart">
+                {{ user_donut|safe }}
+            </div>
+        </div>
+        
+        <!-- Fleet Donut Chart -->
+        <div class="chart-container" style="margin-bottom: 30px;">
+            <h2>Fleet User Distribution</h2>
+            <div id="fleet-donut-chart">
+                {{ fleet_donut|safe }}
+            </div>
+        </div>
+
+        <!-- Member Donut Chart -->
+        <div class="chart-container" style="margin-bottom: 30px;">
+            <h2>Member User Distribution</h2>
+            <div id="member-donut-chart">
+                {{ member_donut|safe }}
+            </div>
+        </div>
+
+        <!-- Partner Donut Chart -->
+        <div class="chart-container" style="margin-bottom: 30px;">
+            <h2>Partner User Distribution</h2>
+            <div id="partner-donut-chart">
+                {{ partner_donut|safe }}
+            </div>
+        </div>
+
+        <!-- Users Across Time Chart -->
+        <div class="chart-container">
+            <h2>Users Over Time</h2>
+            <div id="user-across-time-chart">
+                {{ user_across_time_chart|safe }}
+            </div>
+        </div>
+    </div>    
+</body>
+</html>

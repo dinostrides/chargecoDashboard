@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ChargEco Analytics</title>
+    <!-- Load static files -->
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #212121; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            background-color: #4CAF50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .navbar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: center;
+        }
+        .navbar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            width: 100%;
+        }
+        .navbar ul li {
+            flex: 1;
+        }
+        .navbar ul li a {
+            display: block;
+            padding: 15px;
+            font-size: larger;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+        }
+        .navbar ul li a:hover,
+        .navbar ul li a.active {
+            background-color: #3e8e41;
+        }
+        .logout-form {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .logout-form input[type="submit"] {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .logout-form input[type="submit"]:hover {
+            background-color: #c82333;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px;
+            height: calc(100vh - 100px); /* Adjust to fit within the viewport */
+        }
+        .column {
+            flex: 1;
+            margin: 0 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .large-box, .small-box {
+            background-color: #363a41;
+            border: 2px solid #4CAF50;
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+            color: white;
+        }
+        .large-box {
+            margin-bottom: 14px;
+        }
+        .small-box {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .small-box-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            margin-bottom: 14px;
+        }
+        .dataframe-container {
+            background-color: #363a41;
+            border: 2px solid #4CAF50;
+            border-radius: 14px;
+            padding: 10px;
+            color: white;
+            overflow-y: auto;
+            height: 30vh; /* Adjust height */
+        }
+        .dataframe-container table {
+            width: 100%;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <form method="POST" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <input type="submit" value="Log Out">
+    </form>
+    <div class="header">
+        <div class="navbar">
+            <ul>
+                <li><a href="{% url 'overview' %}" class="{% if request.path == '/overview/' %}active{% endif %}">Overview</a></li>
+                <li><a href="{% url 'utilisation' %}" class="{% if request.path == '/utilisation/' %}active{% endif %}">Utilisation</a></li>
+                <li><a href="{% url 'by_station' %}" class="{% if request.path == '/by_station/' %}active{% endif %}">By Station</a></li>
+                <li><a href="{% url 'billing' %}" class="{% if request.path == '/billing/' %}active{% endif %}">Billing</a></li>
+                <li><a href="{% url 'pricing' %}" class="{% if request.path == '/pricing/' %}active{% endif %}">Pricing</a></li>
+                <li><a href="{% url 'users' %}" class="{% if request.path == '/users/' %}active{% endif %}">Users</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <div class="column">
+            <div class="large-box">
+                <h3>Locations Utilised</h3>
+                <h1>{{locations_utilised}}</h1>
+            </div>
+            <div class="small-box-container">
+                <div class="small-box">
+                    <h3>Avg. Charging Sessions/location</h3>
+                    <h1>{{avg_charging_sessions}}</h1>
+                </div>
+                <div class="small-box">
+                    <h3>Avg. Unique Vehicles/location</h3>
+                    <h1>{{avg_unique_vehicles}}</h1>
+                </div>
+            </div>
+            <div class="large-box">
+                <h3>Average Utilisation</h3>
+                <h1>{{avg_utilisation}}%</h1>
+            </div>
+            <div class="dataframe-container">
+                {{ charger_utilisation_df|safe }}
+            </div>
+        </div>
+        <div class="column">
+            <div class="small-box-container">
+                <div class="small-box">
+                    <h3>Total Active Locations</h3>
+                    <h1>{{total_active_locations}}</h1>
+                </div>
+                <div class="small-box">
+                    <h3>Total Active Charging Points</h3>
+                    <h1>{{total_active_charging_points}}</h1>
+                </div>
+            </div>
+            <!-- <div class="content">
+                <div id="map">
+                    {{ map|safe }}
+                </div>
+            </div> -->
+        </div>
+    </div>
+
+    <script>
+        // Parse the JSON data from the backend
+        try {
+            var mapData = JSON.parse('{{ map|escapejs }}');
+        } catch (e) {
+            console.error("Parsing error:", e);
+        }
+
+        // Check if mapData is correctly parsed
+        if (mapData && mapData.data && mapData.layout) {
+            // Render the map using Plotly
+            Plotly.newPlot('map', mapData.data, mapData.layout);
+        } else {
+            console.error("mapData is not defined or malformed.");
+        }
+    </script>
+
+</body>
+</html>
