@@ -63,8 +63,8 @@ class LogoutUserView(View):
 @require_POST
 def overviewMap(request):
     data = json.loads(request.body.decode('utf-8'))
-    locationStatus = data.get("location_status")
-    powerType = data.get("power_type")
+    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "all", "ac", "dc"
 
     #todo: use locationStatus and powerType to filter results then return it below as response
 
@@ -89,8 +89,8 @@ def overviewMap(request):
 @require_POST
 def overviewRightCards(request):
     data = json.loads(request.body.decode('utf-8'))
-    locationStatus = data.get("location_status")
-    powerType = data.get("power_type")
+    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "all", "ac", "dc"
 
     #todo: use locationStatus and powerType to filter results then return it below as response
 
