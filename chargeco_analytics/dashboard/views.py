@@ -20,8 +20,6 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-
-
 # import logging
 
 # logger=logging.getLogger('django')
@@ -60,29 +58,12 @@ class LogoutUserView(View):
         logout(request)
         return redirect('login')
 
+#this function returns the data to display the markers on the map of the overview page (lat, lon, color)
 @csrf_exempt
 @require_POST
 def overviewMap(request):
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
-    
-    # Load charts/data for the page
-    locations_utilised = str(len(charging_transactions['Site Name'].unique()))
-
-    total_chargers = charging_transactions['Station ID'].nunique()
-    total_sessions = charging_transactions['Transaction ID'].nunique()
-    avg_charging_sessions = f'{round(total_sessions/total_chargers)}'
-
-    total_users = charging_transactions['User ID'].nunique()
-    avg_unique_vehicles = f'{round(total_users/total_chargers)}'
-
-    charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
-    avg_utilisation = str(round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation),1))
-
-    total_active_locations = str(len(charger_data['name'].unique()))
-    total_active_charging_points = str(len(charger_data['evCpId'].unique()))
 
     # Determine marker color based on conditions
     charger_data['marker_color'] = charger_data.apply(lambda row: 'red' if pd.isna(row['evCpId']) else 'Orange' if "Coming Soon" in str(row['name']) else 'Green', axis=1)
@@ -94,18 +75,35 @@ def overviewMap(request):
         'color': charger_data['marker_color'].tolist(),
     })
 
-    context = {
-        'locations_utilised': locations_utilised, #str
-        'avg_charging_sessions': avg_charging_sessions, #str
-        'avg_unique_vehicles': avg_unique_vehicles, #str
-        'avg_utilisation': avg_utilisation, #str 
-        'charger_utilisation_df': charger_utilisation.to_html(index=False, classes="dataframe"), #str
-        'total_active_locations': total_active_locations, #str
-        'total_active_charging_points': total_active_charging_points, #str
-        'map_data_json': map_data_json,
+    return JsonResponse(map_data_json, safe=False)
+
+
+#this function returns the total locations and total charging points on overview page
+@csrf_exempt
+@require_POST
+def overviewRightCards(request):
+
+    response = {
+        "total_locations": 123,
+        "total_charging_points": 456
     }
 
-    return JsonResponse(map_data_json, safe=False)
+    return JsonResponse(response, safe=False)
+
+#this function returns the locations utilised, avg charging sessions per location, avg unique vehicles per location and avg utilisation
+@csrf_exempt
+@require_POST
+def overviewLeftCards(request):
+
+    response = {
+        "locations_utilised": 1,
+        "avg_charging_sessions_per_location": 2,
+        "avg_unique_vehicles_per_location": 3,
+        "avg_utilisation": 4
+    }    
+
+    return JsonResponse(response, safe=False)
+
 
 @require_GET
 @login_required

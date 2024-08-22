@@ -31,6 +31,17 @@ function Overview() {
   const [powerType, setPowerType] = useState("");
   const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
 
+  //Left cards
+  const [locationsUtilised, setLocationsUtilised] = useState();
+  const [avgChargingSessionsPerLocation, setAvgChargingSessionsPerLocation] = useState();
+  const [avgUniqueVehiclesPerLocation, setAvgUniqueVehiclesPerLocation] = useState();
+  const [avgUtilisation, setAvgUtilisation] = useState();
+
+  // Right cards
+  const [totalLocations, setTotalLocations] = useState();
+  const [totalChargingPoints, setTotalChargingPoints] = useState();
+
+  
   const handleLocationStatusChange = (event) => {
     setLocationStatus(event.target.value);
   };
@@ -42,10 +53,22 @@ function Overview() {
   useEffect(()=> {
     const fetchData = async () => {
       try {
-        const response = await axios.post('http://localhost:8000/overviewMap/')
-        const dataString = response.data
+        // Fetching map coordinates
+        const map_coordinates = await axios.post('http://localhost:8000/overviewMap/')
+        const dataString = map_coordinates.data
         const data = JSON.parse(dataString)
         setMapData(data);
+
+        // Fetching active chargers card data
+        const rightCards = await axios.post('http://localhost:8000/overviewRightCards/');
+        setTotalLocations(rightCards.data.total_locations)
+        setTotalChargingPoints(rightCards.data.total_charging_points)
+
+        const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/');
+        setLocationsUtilised(leftCards.data.locations_utilised);
+        setAvgChargingSessionsPerLocation(leftCards.data.avg_charging_sessions_per_location);
+        setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
+        setAvgUtilisation(leftCards.data.avg_utilisation);
       }
       catch(error) {
         console.log(error.message)
@@ -110,16 +133,16 @@ function Overview() {
               <Grid item md={12} lg={12}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={105} text={"Locations utilized"}></OverviewCard>
+                    <OverviewCard number={locationsUtilised} text={"Locations utilized"}></OverviewCard>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={79} text={"Average charging sessions/location"}></OverviewCard>
+                    <OverviewCard number={avgChargingSessionsPerLocation} text={"Average charging sessions/location"}></OverviewCard>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={6} text={"Average unique vehicles/location"}></OverviewCard>
+                    <OverviewCard number={avgUniqueVehiclesPerLocation} text={"Average unique vehicles/location"}></OverviewCard>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={"9.95%"} text={"Average utilization"}></OverviewCard>
+                    <OverviewCard number={avgUtilisation} text={"Average utilization"}></OverviewCard>
                   </Grid>
                 </Grid>
                 <Grid item md={12} lg={12} sx={{
@@ -173,10 +196,10 @@ function Overview() {
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
-                      <OverviewCard number={107} text={"Total Locations"}></OverviewCard>
+                      <OverviewCard number={totalLocations} text={"Total Locations"}></OverviewCard>
                     </Grid>
                     <Grid item xs={6}>
-                      <OverviewCard number={331} text={"Total Charging Points"}></OverviewCard>
+                      <OverviewCard number={totalChargingPoints} text={"Total Charging Points"}></OverviewCard>
                     </Grid>
                   </Grid>
                   <Stack direction={"row"} spacing={3} sx={{
