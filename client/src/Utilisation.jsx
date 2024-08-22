@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar'
 import {
   Box,
@@ -22,6 +22,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
+import axios from 'axios';
 
 
 function Utilisation() {
@@ -30,6 +31,13 @@ function Utilisation() {
   const [charger, setCharger] = useState();
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
+  
+  //Cards
+  const [totalChargingSessions, setTotalChargingSessions] = useState();
+  const [acChargingStations, setAcChargingStations] = useState();
+  const [dcChargingStations, setDcChargingStations] = useState();
+  const [avgMinPerAcSession, setAvgMinPerAcSession] = useState();
+  const [avgMinPerDcSession, setAvgMinPerDcSession] = useState();
 
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
@@ -38,6 +46,21 @@ function Utilisation() {
   const handleChargerChange = (event) => {
     setCharger(event.target.value);
   };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const utilisationCards = await axios.post("http://localhost:8000/utilisationCards/", {
+  //         start_date: startDate,
+  //         end_date: endDate
+  //       })
+  //     }
+  //     catch (error) {
+  //       console.log(error.message)
+  //     }
+  //   }
+  //   fetchData();
+  // }, [startDate, endDate])
 
   return (
     <>

@@ -85,6 +85,8 @@ function Overview() {
         setAvgChargingSessionsPerLocation(leftCards.data.avg_charging_sessions_per_location);
         setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
         setAvgUtilisation(leftCards.data.avg_utilisation);
+
+        
       }
       catch (error) {
         console.log(error.message)

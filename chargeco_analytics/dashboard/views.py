@@ -67,7 +67,7 @@ def overviewMap(request):
     powerType = data.get("power_type") #either "all", "ac", "dc"
 
     #todo: use locationStatus and powerType to filter results then return it below as response
-
+    
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
