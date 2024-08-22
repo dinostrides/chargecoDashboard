@@ -62,6 +62,12 @@ class LogoutUserView(View):
 @csrf_exempt
 @require_POST
 def overviewMap(request):
+    data = json.loads(request.body.decode('utf-8'))
+    locationStatus = data.get("location_status")
+    powerType = data.get("power_type")
+
+    #todo: use locationStatus and powerType to filter results then return it below as response
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
@@ -82,6 +88,11 @@ def overviewMap(request):
 @csrf_exempt
 @require_POST
 def overviewRightCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    locationStatus = data.get("location_status")
+    powerType = data.get("power_type")
+
+    #todo: use locationStatus and powerType to filter results then return it below as response
 
     response = {
         "total_locations": 123,
@@ -94,12 +105,17 @@ def overviewRightCards(request):
 @csrf_exempt
 @require_POST
 def overviewLeftCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+
+    #todo: use startDate and endDate to filter data, then return it below in response
 
     response = {
         "locations_utilised": 1,
         "avg_charging_sessions_per_location": 2,
         "avg_unique_vehicles_per_location": 3,
-        "avg_utilisation": 4
+        "avg_utilisation": 4,
     }    
 
     return JsonResponse(response, safe=False)

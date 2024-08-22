@@ -25,8 +25,10 @@ import SortableTable from './components/SortableTable'
 import axios from 'axios';
 
 function Overview() {
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
   const [locationStatus, setLocationStatus] = useState();
   const [powerType, setPowerType] = useState("");
   const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
@@ -41,7 +43,11 @@ function Overview() {
   const [totalLocations, setTotalLocations] = useState();
   const [totalChargingPoints, setTotalChargingPoints] = useState();
 
-  
+  // useEffect(()=>{
+  //   console.log(startDate.$d, endDate.$d)
+  // }, [startDate, endDate])
+
+
   const handleLocationStatusChange = (event) => {
     setLocationStatus(event.target.value);
   };
@@ -50,34 +56,42 @@ function Overview() {
     setPowerType(event.target.value);
   }
 
-  useEffect(()=> {
+  useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetching map coordinates
-        const map_coordinates = await axios.post('http://localhost:8000/overviewMap/')
+        const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
+          location_status: locationStatus,
+          power_type: powerType
+        })
         const dataString = map_coordinates.data
         const data = JSON.parse(dataString)
         setMapData(data);
 
-        // Fetching active chargers card data
-        const rightCards = await axios.post('http://localhost:8000/overviewRightCards/');
+        const rightCards = await axios.post('http://localhost:8000/overviewRightCards/', {
+          location_status: locationStatus,
+          power_type: powerType
+        });
+
         setTotalLocations(rightCards.data.total_locations)
         setTotalChargingPoints(rightCards.data.total_charging_points)
 
-        const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/');
+        const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/', {
+          start_date: startDate,
+          end_date: endDate
+        });
+        
         setLocationsUtilised(leftCards.data.locations_utilised);
         setAvgChargingSessionsPerLocation(leftCards.data.avg_charging_sessions_per_location);
         setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
         setAvgUtilisation(leftCards.data.avg_utilisation);
       }
-      catch(error) {
+      catch (error) {
         console.log(error.message)
       }
     }
-
     fetchData();
-    
-  }, [])
+  }, [startDate, endDate])
 
   return (
     <>
@@ -93,7 +107,7 @@ function Overview() {
           <Grid item md={12} lg={6}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={12}>
-              <Typography
+                <Typography
                   sx={{
                     fontFamily: "Mukta",
                     fontSize: "40px",
