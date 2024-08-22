@@ -67,7 +67,7 @@ def overviewMap(request):
     powerType = data.get("power_type") #either "all", "ac", "dc"
 
     #todo: use locationStatus and powerType to filter results then return it below as response
-    
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
@@ -117,6 +117,108 @@ def overviewLeftCards(request):
         "avg_unique_vehicles_per_location": 3,
         "avg_utilisation": 4,
     }    
+
+    return JsonResponse(response, safe=False)
+
+#this function returns the chargerid and utilisation rate to be displayed in the overview page table
+@csrf_exempt
+@require_POST
+def overviewTable(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #n date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+
+    #todo: use startDate and endDate to filter data, then return it below in response
+    #response format is same as below
+
+    response = [
+  {
+    "chargerId": "CHG001",
+    "utilizationRate": 85.6
+  },
+  {
+    "chargerId": "CHG002",
+    "utilizationRate": 74.3
+  },
+  {
+    "chargerId": "CHG003",
+    "utilizationRate": 92.1
+  },
+  {
+    "chargerId": "CHG004",
+    "utilizationRate": 68.9
+  },
+  {
+    "chargerId": "CHG005",
+    "utilizationRate": 79.4
+  },
+  {
+    "chargerId": "CHG006",
+    "utilizationRate": 88.2
+  },
+  {
+    "chargerId": "CHG007",
+    "utilizationRate": 81.0
+  },
+  {
+    "chargerId": "CHG008",
+    "utilizationRate": 73.5
+  },
+  {
+    "chargerId": "CHG009",
+    "utilizationRate": 90.7
+  },
+  {
+    "chargerId": "CHG010",
+    "utilizationRate": 84.1
+  },
+  {
+    "chargerId": "CHG011",
+    "utilizationRate": 76.9
+  },
+  {
+    "chargerId": "CHG012",
+    "utilizationRate": 89.3
+  },
+  {
+    "chargerId": "CHG013",
+    "utilizationRate": 78.4
+  },
+  {
+    "chargerId": "CHG014",
+    "utilizationRate": 82.7
+  },
+  {
+    "chargerId": "CHG015",
+    "utilizationRate": 91.2
+  },
+  {
+    "chargerId": "CHG016",
+    "utilizationRate": 77.8
+  },
+  {
+    "chargerId": "CHG017",
+    "utilizationRate": 86.5
+  },
+  {
+    "chargerId": "CHG018",
+    "utilizationRate": 75.4
+  },
+  {
+    "chargerId": "CHG019",
+    "utilizationRate": 83.9
+  },
+  {
+    "chargerId": "CHG020",
+    "utilizationRate": 87.6
+  }
+]
+
+
+    #front end receives in same format, array
+    
+
+       
 
     return JsonResponse(response, safe=False)
 

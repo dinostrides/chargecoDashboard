@@ -43,10 +43,9 @@ function Overview() {
   const [totalLocations, setTotalLocations] = useState();
   const [totalChargingPoints, setTotalChargingPoints] = useState();
 
-  // useEffect(()=>{
-  //   console.log(startDate.$d, endDate.$d)
-  // }, [startDate, endDate])
 
+  // Table data
+  const [tableData, setTableData] = useState([]);
 
   const handleLocationStatusChange = (event) => {
     setLocationStatus(event.target.value);
@@ -85,6 +84,14 @@ function Overview() {
         setAvgChargingSessionsPerLocation(leftCards.data.avg_charging_sessions_per_location);
         setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
         setAvgUtilisation(leftCards.data.avg_utilisation);
+
+        const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
+          start_date: startDate,
+          end_date: endDate
+        });
+
+        const tableDataArr = tableResponse.data;
+        setTableData(tableDataArr);
 
         
       }
@@ -164,7 +171,7 @@ function Overview() {
                 <Grid item md={12} lg={12} sx={{
                   marginTop: '30px'
                 }}>
-                  <SortableTable height={"600px"}></SortableTable>
+                  <SortableTable height={"600px"} data={tableData}></SortableTable>
                 </Grid>
               </Grid>
             </Grid>

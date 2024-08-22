@@ -4,21 +4,9 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 
-function createData(id, energy, revenue) {
-  return { id, energy, revenue };
-}
-
-function getRandomNumber(min, max) {
-  return (Math.random() * (max - min) + min).toFixed(2);
-}
-
-const rows = Array.from({ length: 50 }, (_, index) =>
-  createData(index + 1, getRandomNumber(100, 500), getRandomNumber(1000, 5000))
-);
-
-function SortableTable( {height} ) {
+function SortableTable({ height, data }) {
   const [orderDirection, setOrderDirection] = useState('asc');
-  const [orderBy, setOrderBy] = useState('id');
+  const [orderBy, setOrderBy] = useState('chargerId');
 
   const handleSortRequest = (property) => {
     const isAsc = orderBy === property && orderDirection === 'asc';
@@ -26,7 +14,7 @@ function SortableTable( {height} ) {
     setOrderBy(property);
   };
 
-  const sortedRows = [...rows].sort((a, b) => {
+  const sortedRows = [...data].sort((a, b) => {
     if (orderDirection === 'asc') {
       return a[orderBy] < b[orderBy] ? -1 : 1;
     } else {
@@ -35,54 +23,36 @@ function SortableTable( {height} ) {
   });
 
   return (
-    <Box sx={{ maxHeight: 600, height: {height}, overflow: 'auto', marginBottom: '20px' }}>
+    <Box sx={{ maxHeight: 600, height: height, overflow: 'auto', marginBottom: '20px' }}>
       <TableContainer component={Paper}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{
-                backgroundColor: '#d9d4d4'
-              }}>
+              <TableCell sx={{ backgroundColor: '#d9d4d4' }}>
                 <TableSortLabel
-                  active={orderBy === 'id'}
+                  active={orderBy === 'chargerId'}
                   direction={orderDirection}
-                  onClick={() => handleSortRequest('id')}
+                  onClick={() => handleSortRequest('chargerId')}
                 >
                   Charger ID
                 </TableSortLabel>
               </TableCell>
-              <TableCell sx={{
-                backgroundColor: '#d9d4d4',
-              }}>
+              <TableCell sx={{ backgroundColor: '#d9d4d4' }}>
                 <TableSortLabel
-                  active={orderBy === 'energy'}
+                  active={orderBy === 'utilizationRate'}
                   direction={orderDirection}
-                  onClick={() => handleSortRequest('energy')}
+                  onClick={() => handleSortRequest('utilizationRate')}
                 >
-                  Total Energy (kWh)
-                </TableSortLabel>
-              </TableCell>
-              <TableCell sx={{
-                backgroundColor: '#d9d4d4'
-              }}>
-                <TableSortLabel
-                  active={orderBy === 'revenue'}
-                  direction={orderDirection}
-                  onClick={() => handleSortRequest('revenue')}
-                >
-                  Total Revenue ($)
+                  Utilization Rate (%)
                 </TableSortLabel>
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedRows.map((row) => (
-              <TableRow key={row.id} sx={{
-                backgroundColor: row.id % 2 === 0 ? 'white' : '#f7f5f5'
-              }}>
-                <TableCell>{row.id}</TableCell>
-                <TableCell>{row.energy}</TableCell>
-                <TableCell>{row.revenue}</TableCell>
+              <TableRow key={row.chargerId} sx={{ backgroundColor: row.chargerId % 2 === 0 ? 'white' : '#f7f5f5' }}>
+                <TableCell>{row.chargerId}</TableCell>
+                <TableCell>{row.utilizationRate}</TableCell>
               </TableRow>
             ))}
           </TableBody>
