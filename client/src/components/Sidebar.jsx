@@ -9,6 +9,7 @@ import { BsFillEvStationFill } from "react-icons/bs";
 import { FaMoneyCheckAlt } from "react-icons/fa";
 import { FaUserFriends } from "react-icons/fa";
 import { IoLogOut } from "react-icons/io5";
+import { IoIosPricetag } from "react-icons/io";
 
 const style = {
     position: 'absolute',
@@ -219,7 +220,8 @@ function Sidebar({ tab }) {
                         }}
                     >
                         <Stack direction={"row"} spacing={2} alignItems={'center'} justifyContent={'flex-start'}>
-                            <FaMoneyCheckAlt color="white" size={20} />
+                            <IoIosPricetag color="white" size={20}/>
+
                             {!isBelowBreakpoint && (
                                 <Typography sx={{
                                     fontWeight: '500',
