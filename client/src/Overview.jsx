@@ -29,8 +29,8 @@ function Overview() {
   const oneYearAgo = today.subtract(1, 'year');
   const [startDate, setStartDate] = useState(oneYearAgo);
   const [endDate, setEndDate] = useState(today);
-  const [locationStatus, setLocationStatus] = useState();
-  const [powerType, setPowerType] = useState("");
+  const [locationStatus, setLocationStatus] = useState("All");
+  const [powerType, setPowerType] = useState("All");
   const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
 
   //Left cards
@@ -90,6 +90,7 @@ function Overview() {
 
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr);
+        console.log("apple", tableDataArr)
       }
       catch (error) {
         console.log(error.message)
@@ -237,9 +238,10 @@ function Overview() {
                         label="Location Status"
                         onChange={handleLocationStatusChange}
                       >
-                        <MenuItem value={10}>All</MenuItem>
-                        <MenuItem value={20}>Option</MenuItem>
-                        <MenuItem value={30}>Option</MenuItem>
+                        <MenuItem value={"All"}>All</MenuItem>
+                        <MenuItem value={"coming_soon"}>Coming Soon</MenuItem>
+                        <MenuItem value={"in_operation"}>In Operation</MenuItem>
+                        <MenuItem value={"no_charging_points"}>No Charging Points</MenuItem>
                       </Select>
                     </FormControl>
                     <FormControl fullWidth>
@@ -251,9 +253,9 @@ function Overview() {
                         label="Power Type"
                         onChange={handlePowerTypeChange}
                       >
-                        <MenuItem value={10}>All</MenuItem>
-                        <MenuItem value={20}>Option</MenuItem>
-                        <MenuItem value={30}>Option</MenuItem>
+                        <MenuItem value={"All"}>All</MenuItem>
+                        <MenuItem value={"AC"}>AC</MenuItem>
+                        <MenuItem value={"DC"}>DC</MenuItem>
                       </Select>
                     </FormControl>
                     <Legend></Legend>
