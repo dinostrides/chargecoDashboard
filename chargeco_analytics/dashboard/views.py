@@ -16,6 +16,9 @@ from .utils import data_loader
 from .utils import charts_generator
 import plotly.express as px
 import plotly.io as pio
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # import logging
 
@@ -55,29 +58,18 @@ class LogoutUserView(View):
         logout(request)
         return redirect('login')
 
-@require_GET
-@login_required
-def overview(request):
+#this function returns the data to display the markers on the map of the overview page (lat, lon, color)
+@csrf_exempt
+@require_POST
+def overviewMap(request):
+    data = json.loads(request.body.decode('utf-8'))
+    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "all", "ac", "dc"
+
+    #todo: use locationStatus and powerType to filter results then return it below as response
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
-    
-    # Load charts/data for the page
-    locations_utilised = str(len(charging_transactions['Site Name'].unique()))
-
-    total_chargers = charging_transactions['Station ID'].nunique()
-    total_sessions = charging_transactions['Transaction ID'].nunique()
-    avg_charging_sessions = f'{round(total_sessions/total_chargers)}'
-
-    total_users = charging_transactions['User ID'].nunique()
-    avg_unique_vehicles = f'{round(total_users/total_chargers)}'
-
-    charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
-    avg_utilisation = str(round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation),1))
-
-    total_active_locations = str(len(charger_data['name'].unique()))
-    total_active_charging_points = str(len(charger_data['evCpId'].unique()))
 
     # Determine marker color based on conditions
     charger_data['marker_color'] = charger_data.apply(lambda row: 'red' if pd.isna(row['evCpId']) else 'Orange' if "Coming Soon" in str(row['name']) else 'Green', axis=1)
@@ -87,30 +79,148 @@ def overview(request):
         'lat': charger_data['latitude'].tolist(),
         'lon': charger_data['longitude'].tolist(),
         'color': charger_data['marker_color'].tolist(),
-        # 'name': charger_data['evCpId'].tolist()
     })
 
-    # overview_map = charts_generator.create_plotly_map(charger_data)
-    # # Convert the map to JSON 
-    # map_json = pio.to_json(overview_map)
+    return JsonResponse(map_data_json, safe=False)
 
 
-    # overview_map = charts_generator.create_map(charger_data)._repr_html_()
+#this function returns the total locations and total charging points on overview page
+@csrf_exempt
+@require_POST
+def overviewRightCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "all", "ac", "dc"
 
-    # # Convert the map to JSON
-    # map_json = overview_map._to_json()
+    #todo: use locationStatus and powerType to filter results then return it below as response
 
-    context = {
-        'locations_utilised': locations_utilised, #str
-        'avg_charging_sessions': avg_charging_sessions, #str
-        'avg_unique_vehicles': avg_unique_vehicles, #str
-        'avg_utilisation': avg_utilisation, #str 
-        'charger_utilisation_df': charger_utilisation.to_html(index=False, classes="dataframe"), #str
-        'total_active_locations': total_active_locations, #str
-        'total_active_charging_points': total_active_charging_points, #str
-        'map_data_json': map_data_json,
+    response = {
+        "total_locations": 123,
+        "total_charging_points": 456
     }
-    return render(request, "overview.html", context)
+
+    return JsonResponse(response, safe=False)
+
+#this function returns the locations utilised, avg charging sessions per location, avg unique vehicles per location and avg utilisation
+@csrf_exempt
+@require_POST
+def overviewLeftCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+
+    #todo: use startDate and endDate to filter data, then return it below in response
+
+    response = {
+        "locations_utilised": 1,
+        "avg_charging_sessions_per_location": 2,
+        "avg_unique_vehicles_per_location": 3,
+        "avg_utilisation": 4,
+    }    
+
+    return JsonResponse(response, safe=False)
+
+#this function returns the chargerid and utilisation rate to be displayed in the overview page table
+@csrf_exempt
+@require_POST
+def overviewTable(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #n date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+
+    #todo: use startDate and endDate to filter data, then return it below in response
+    #response format is same as below
+
+    response = [
+  {
+    "chargerId": "CHG001",
+    "utilizationRate": 85.6
+  },
+  {
+    "chargerId": "CHG002",
+    "utilizationRate": 74.3
+  },
+  {
+    "chargerId": "CHG003",
+    "utilizationRate": 92.1
+  },
+  {
+    "chargerId": "CHG004",
+    "utilizationRate": 68.9
+  },
+  {
+    "chargerId": "CHG005",
+    "utilizationRate": 79.4
+  },
+  {
+    "chargerId": "CHG006",
+    "utilizationRate": 88.2
+  },
+  {
+    "chargerId": "CHG007",
+    "utilizationRate": 81.0
+  },
+  {
+    "chargerId": "CHG008",
+    "utilizationRate": 73.5
+  },
+  {
+    "chargerId": "CHG009",
+    "utilizationRate": 90.7
+  },
+  {
+    "chargerId": "CHG010",
+    "utilizationRate": 84.1
+  },
+  {
+    "chargerId": "CHG011",
+    "utilizationRate": 76.9
+  },
+  {
+    "chargerId": "CHG012",
+    "utilizationRate": 89.3
+  },
+  {
+    "chargerId": "CHG013",
+    "utilizationRate": 78.4
+  },
+  {
+    "chargerId": "CHG014",
+    "utilizationRate": 82.7
+  },
+  {
+    "chargerId": "CHG015",
+    "utilizationRate": 91.2
+  },
+  {
+    "chargerId": "CHG016",
+    "utilizationRate": 77.8
+  },
+  {
+    "chargerId": "CHG017",
+    "utilizationRate": 86.5
+  },
+  {
+    "chargerId": "CHG018",
+    "utilizationRate": 75.4
+  },
+  {
+    "chargerId": "CHG019",
+    "utilizationRate": 83.9
+  },
+  {
+    "chargerId": "CHG020",
+    "utilizationRate": 87.6
+  }
+]
+
+
+    #front end receives in same format, array
+       
+
+    return JsonResponse(response, safe=False)
+
+
 
 @require_GET
 @login_required
@@ -301,4 +411,3 @@ def users(request):
     }
 
     return render(request, "users.html", context)
-

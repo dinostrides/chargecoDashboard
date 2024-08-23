@@ -24,11 +24,14 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { dataset } from './datasets/weather';
 import { stationLocations } from './datasets/stationLocations'
 
+
 function ByStation() {
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  const [location, setLocation] = useState("");
-  const [powerType, setPowerType] = useState("");
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
+  const [location, setLocation] = useState("Jurong East");
+  const [powerType, setPowerType] = useState("All");
 
   const handleLocationChange = (event) => {
     setLocation(event.target.value);
@@ -99,11 +102,11 @@ function ByStation() {
                       <Typography
                         component="span"
                         sx={{
-                          fontWeight: "normal", // This applies to "Fernvale" only
+                          fontWeight: "normal",
                           fontSize: '25px'
                         }}
                       >
-                        Fernvale
+                        {location === "" ? "None" : location}
                       </Typography>
                     </Typography>
                   </CardContent>
@@ -159,7 +162,7 @@ function ByStation() {
                   onChange={handleLocationChange}
                 >
                   {stationLocations.map((loc) => (
-                    <MenuItem key={loc.id} value={loc.id}>
+                    <MenuItem key={loc.id} value={loc.name}>
                       {loc.name}
                     </MenuItem>
                   ))}
@@ -174,9 +177,9 @@ function ByStation() {
                   label="Power Type"
                   onChange={handlePowerTypeChange}
                 >
-                  <MenuItem value={10}>All</MenuItem>
-                  <MenuItem value={20}>Option</MenuItem>
-                  <MenuItem value={30}>Option</MenuItem>
+                  <MenuItem value={"All"}>All</MenuItem>
+                  <MenuItem value={"AC"}>AC</MenuItem>
+                  <MenuItem value={"DC"}>DC</MenuItem>
                 </Select>
               </FormControl>
             </Stack>

@@ -24,8 +24,8 @@ function Login() {
         sx={{
           width: "70%",
           height: "80%",
-          minWidth: "900px",
-          minHeight: "800px",
+          minWidth: "600px",
+          minHeight: "600px",
           display: "flex",
         }}
       >
@@ -60,7 +60,13 @@ function Login() {
             <Typography
               sx={{
                 marginLeft: "18%",
-                fontSize: "40px",
+                fontSize: {
+                  xl: '40px',
+                  lg: '40px',
+                  md: '35px',
+                  sm: '30px',
+                  xs: '25px'
+                },
                 fontFamily: "Arsenal SC"
               }}
             >
@@ -69,7 +75,13 @@ function Login() {
             <Typography
               sx={{
                 marginLeft: "18%",
-                fontSize: "35px",
+                fontSize: {
+                  xl: '35px',
+                  lg: '35px',
+                  md: '20px',
+                  sm: '15px',
+                  xs: '10px'
+                },
                 fontFamily: "Roboto Condensed",
                 marginTop: '20px'
               }}
