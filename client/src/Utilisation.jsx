@@ -23,6 +23,7 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
 import axios from 'axios';
+import addresses from "./datasets/addresses.json"
 
 
 function Utilisation() {
@@ -31,7 +32,7 @@ function Utilisation() {
   const [charger, setCharger] = useState();
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  
+
   //Cards
   const [totalChargingSessions, setTotalChargingSessions] = useState();
   const [acChargingStations, setAcChargingStations] = useState();
@@ -127,9 +128,11 @@ function Utilisation() {
                       label="Address"
                       onChange={handleAddressChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
+                      {addresses.map((addr, index) => (
+                        <MenuItem key={index} value={addr}>
+                          {addr}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                   <FormControl fullWidth>
