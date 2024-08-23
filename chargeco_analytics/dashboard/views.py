@@ -83,7 +83,6 @@ def overviewMap(request):
 
     return JsonResponse(map_data_json, safe=False)
 
-
 #this function returns the total locations and total charging points on overview page
 @csrf_exempt
 @require_POST
@@ -165,6 +164,86 @@ def overviewTable(request):
     return JsonResponse(charger_utilisation_json, safe=False)
 
 
+
+#this function returns the total charging sessions, ac/dc charging sessions, avg mins per ac/dc charging session
+@csrf_exempt
+@require_POST
+def utilisationLeftCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Calculate total number of charging sessions
+    total_charging_sessions = charging_transactions['Transaction ID'].nunique()
+
+    # Calculate the number of AC and DC charging sessions
+    ac_sessions = charging_transactions[charging_transactions['power_type'] == 'AC']['Transaction ID'].nunique()
+    dc_sessions = charging_transactions[charging_transactions['power_type'] == 'DC']['Transaction ID'].nunique()
+
+    # Calculate the average duration (in minutes) per AC/DC session
+    ac_avg_duration = charging_transactions[charging_transactions['power_type'] == 'AC']['totalDuration'].mean()
+    dc_avg_duration = charging_transactions[charging_transactions['power_type'] == 'DC']['totalDuration'].mean()
+
+ 
+    response = {
+        "total_charging_sessions": total_charging_sessions,
+        "ac_sessions": ac_sessions,
+        "dc_sessions": dc_sessions,
+        "ac_avg_duration": ac_avg_duration,
+        "dc_avg_duration": dc_avg_duration
+    }    
+
+    return JsonResponse(response, safe=False)
+
+#this function returns the heatmap
+@require_POST
+def utilisationHeatMap(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    utilisation_heatmap = charts_generator.get_util_clustermap(charging_transactions)
+
+    response = {
+        "utilisation_heatmap": utilisation_heatmap
+    }    
+
+    return JsonResponse(response, safe=False)
+
+#this function returns the utilisation chart
+@require_POST
+def utilisationChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    utilisation_chart = charts_generator.util_hour_chart(charging_transactions)
+    utilisation_chart_json = pio.to_json(utilisation_chart)
+
+    response = {
+        "utilisation_chart_json": utilisation_chart_json
+    }    
+
+    return JsonResponse(response, safe=False)
 
 @require_GET
 @login_required
