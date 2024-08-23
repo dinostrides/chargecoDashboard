@@ -149,7 +149,7 @@ def overviewLeftCards(request):
 @require_POST
 def overviewTable(request):
     data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date") #n date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    startDate = data.get("start_date")
     endDate = data.get("end_date")
 
     # Load data for the page
@@ -157,12 +157,19 @@ def overviewTable(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
 
-    #todo: use startDate and endDate to filter data, then return it below in response
-    #response format is same as below
+    # Use startDate and endDate to filter data, then return it below in response
     charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
-    charger_utilisation_json = charger_utilisation.to_json(orient='records')
+    
+    # Rename the columns in the DataFrame
+    charger_utilisation = charger_utilisation.rename(columns={
+        'Charger ID': 'chargerId',
+        'Utilisation Rate': 'utilizationRate'
+    })
+    
+    # Convert DataFrame to a list of dictionaries
+    charger_utilisation_dict = charger_utilisation.to_dict(orient='records')
 
-    return JsonResponse(charger_utilisation_json, safe=False)
+    return JsonResponse(charger_utilisation_dict, safe=False)
 
 
 
