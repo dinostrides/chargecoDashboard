@@ -1,15 +1,25 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import { Box, Typography, Grid, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import OverviewCard from './components/cards/OverviewCard'
 import SortableTable from './components/SortableTable'
 import { BarChart } from '@mui/x-charts/BarChart';
+import dayjs from "dayjs";
+import axios from 'axios';
 
 function Billing() {
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
+
   const [powerType, setPowerType] = useState("");
   const [price, setPrice] = useState("");
   const [charger, setCharger] = useState("");
+
+  // Table data
+  const [tableData, setTableData] = useState([]);
 
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
@@ -22,6 +32,24 @@ function Billing() {
   const handleChargerChange = (event) => {
     setCharger(event.target.value);
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
+          start_date: startDate,
+          end_date: endDate
+        });
+
+        const tableDataArr = tableResponse.data;
+        setTableData(tableDataArr);
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+    }
+    fetchData();
+  }, [startDate, endDate])
 
   return (
     <>
@@ -100,7 +128,7 @@ function Billing() {
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={6}>
-            <SortableTable height={"400px"}/>
+            <SortableTable height={"400px"} data={tableData}/>
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <BarChart
