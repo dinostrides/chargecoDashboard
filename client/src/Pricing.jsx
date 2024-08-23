@@ -13,9 +13,11 @@ import { scatterdata } from './datasets/scatterdata.jsx';
 import PricingCard from './components/cards/PricingCard.jsx';
 
 function Pricing() {
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  const [powerType, setPowerType] = useState("");
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
+  const [powerType, setPowerType] = useState("All");
 
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
@@ -78,9 +80,9 @@ function Pricing() {
                       label="Power Type"
                       onChange={handlePowerTypeChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
+                      <MenuItem value={"All"}>All</MenuItem>
+                      <MenuItem value={"AC"}>AC</MenuItem>
+                      <MenuItem value={"DC"}>DC</MenuItem>
                     </Select>
                   </FormControl>
                   <PricingCard number={"$0.58/kWh"} text={"Average Rate After Discount"}></PricingCard>
