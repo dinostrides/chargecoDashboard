@@ -216,11 +216,10 @@ def overviewTable(request):
 
 
     #front end receives in same format, array
-    
-
        
 
     return JsonResponse(response, safe=False)
+
 
 
 @require_GET

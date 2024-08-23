@@ -43,7 +43,6 @@ function Overview() {
   const [totalLocations, setTotalLocations] = useState();
   const [totalChargingPoints, setTotalChargingPoints] = useState();
 
-
   // Table data
   const [tableData, setTableData] = useState([]);
 
@@ -58,7 +57,6 @@ function Overview() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetching map coordinates
         const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
           location_status: locationStatus,
           power_type: powerType
@@ -92,8 +90,6 @@ function Overview() {
 
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr);
-
-        
       }
       catch (error) {
         console.log(error.message)
