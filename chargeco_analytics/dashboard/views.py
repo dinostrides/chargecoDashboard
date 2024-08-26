@@ -58,6 +58,10 @@ class LogoutUserView(View):
         logout(request)
         return redirect('login')
 
+########################################################
+####################### OVERVIEW #######################
+########################################################
+
 #this function returns the data to display the markers on the map of the overview page (lat, lon, color)
 @csrf_exempt
 @require_POST
@@ -170,7 +174,9 @@ def overviewTable(request):
 
     return JsonResponse(charger_utilisation_dict, safe=False)
 
-
+###########################################################
+####################### UTILISATION #######################
+###########################################################
 
 #this function returns the total charging sessions, ac/dc charging sessions, avg mins per ac/dc charging session
 @csrf_exempt
@@ -211,7 +217,7 @@ def utilisationLeftCards(request):
 
 #this function returns the heatmap
 @require_POST
-def utilisationHeatMap(request):
+def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
@@ -222,17 +228,17 @@ def utilisationHeatMap(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    utilisation_heatmap = charts_generator.get_util_clustermap(charging_transactions)
+    clustermap_markers_json = charts_generator.get_util_clustermap_json(charging_transactions)
 
     response = {
-        "utilisation_heatmap": utilisation_heatmap
+        "clustermap_markers_json": clustermap_markers_json
     }    
 
     return JsonResponse(response, safe=False)
 
 #this function returns the utilisation chart
 @require_POST
-def utilisationChart(request):
+def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
@@ -243,14 +249,38 @@ def utilisationChart(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    utilisation_chart = charts_generator.util_hour_chart(charging_transactions)
-    utilisation_chart_json = pio.to_json(utilisation_chart)
+    utilisation_hourly_chart_data_json  = charts_generator.util_hour_chart_json(charging_transactions)
+    # utilisation_chart_json = pio.to_json(utilisation_chart)
 
     response = {
-        "utilisation_chart_json": utilisation_chart_json
+        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json 
     }    
 
     return JsonResponse(response, safe=False)
+
+#this function returns the day/night & weekend/weekday chart
+@require_POST
+def utilisationBarChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    util_dayNight_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+
+    response = {
+        'util_dayNight_data_json': util_dayNight_data_json,
+        'util_weekdayWeekend_data_json':util_weekdayWeekend_data_json
+    }    
+
+    return JsonResponse(response, safe=False)
+
 
 @require_GET
 @login_required
