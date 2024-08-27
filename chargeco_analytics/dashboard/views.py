@@ -239,6 +239,7 @@ def utilisationClusterMap(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the utilisation chart
+@csrf_exempt
 @require_POST
 def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -251,16 +252,18 @@ def utilisationUtilChart(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    utilisation_hourly_chart_data_json  = charts_generator.util_hour_chart_json(charging_transactions)
+    utilisation_hourly_chart_data_json_str  = charts_generator.util_hour_chart_json(charging_transactions)
+    utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
     # utilisation_chart_json = pio.to_json(utilisation_chart)
 
     response = {
-        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json 
+        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
 
     return JsonResponse(response, safe=False)
 
 #this function returns the day/night & weekend/weekday chart
+@csrf_exempt
 @require_POST
 def utilisationBarChart(request):
     data = json.loads(request.body.decode('utf-8'))

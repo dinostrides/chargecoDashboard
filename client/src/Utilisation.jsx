@@ -66,8 +66,15 @@ function Utilisation() {
           start_date: startDate,
           end_date: endDate
         })
-        console.log(utilisationClusterMap.data.clustermap_markers_json)
+        // console.log(utilisationClusterMap.data.clustermap_markers_json)
         // can get data already (lat long) but need to ask about how we want to display it
+
+        const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+
+        console.log(utilisationUtilChart.data.utilisation_hourly_chart_data_json) //works but takes > 10 seconds (to resolve)
       }
       catch (error) {
         console.log(error.message)
