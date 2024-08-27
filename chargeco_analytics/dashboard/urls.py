@@ -9,5 +9,6 @@ urlpatterns = [
     path('overviewTable/', views.overviewTable),
     path('utilisationLeftCards/', views.utilisationLeftCards),
     path('utilisationClusterMap/',views.utilisationClusterMap),
-    path('utilisationUtilChart/', views.utilisationUtilChart)
+    path('utilisationUtilChart/', views.utilisationUtilChart),
+    path('utilisationBarChart/', views.utilisationBarChart)
 ]

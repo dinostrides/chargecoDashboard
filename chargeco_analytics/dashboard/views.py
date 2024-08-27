@@ -281,8 +281,11 @@ def utilisationBarChart(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    util_dayNight_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
-    util_weekdayWeekend_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+    util_dayNight_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+
+    util_dayNight_data_json = json.loads(util_dayNight_data_json_str)
+    util_weekdayWeekend_data_json = json.loads(util_weekdayWeekend_data_json_str)
 
     response = {
         'util_dayNight_data_json': util_dayNight_data_json,

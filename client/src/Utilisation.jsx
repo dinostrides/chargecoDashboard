@@ -44,6 +44,8 @@ function Utilisation() {
   const xAxisData = utilChartData.map(item => item.Hour);
   const seriesData = utilChartData.map(item => item["Average Utilisation"] * 100);
 
+  const [avgUtilisationByDayNight, setAvgUtilisationByDayNight] = useState([]);
+  const [avgUtilisationByWeekdayWeekend, setAvgUtilisationByWeekdayWeekend] = useState([]);
 
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
@@ -80,6 +82,16 @@ function Utilisation() {
         })
 
         setUtilChartData(utilisationUtilChart.data.utilisation_hourly_chart_data_json)
+
+        const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+
+        setAvgUtilisationByDayNight(utilisationBarChart.data.util_dayNight_data_json)
+        setAvgUtilisationByWeekdayWeekend(utilisationBarChart.data.util_weekdayWeekend_data_json)
+        
+        console.log(utilisationBarChart.data.util_dayNight_data_json)
       }
       catch (error) {
         console.log(error.message)
