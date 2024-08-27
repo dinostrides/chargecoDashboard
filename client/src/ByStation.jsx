@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar'
 import {
   Box,
@@ -22,13 +22,21 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { dataset } from './datasets/weather';
-import { stationLocations } from './datasets/stationLocations'
+import stations from './datasets/stations.json'
+import axios from 'axios';
+
 
 function ByStation() {
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  const [location, setLocation] = useState("");
-  const [powerType, setPowerType] = useState("");
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
+  const [location, setLocation] = useState("All");
+  const [powerType, setPowerType] = useState("All");
+
+  const [totalChargers, setTotalChargers] = useState();
+  const [avgPriceAfterDiscount, setAvgPriceAfterDiscount] = useState();
+  const [avgUtilisationRate, setAvgUtilisationRate] = useState();
 
   const handleLocationChange = (event) => {
     setLocation(event.target.value);
@@ -46,9 +54,30 @@ function ByStation() {
         label: 'rainfall (mm)',
       },
     ],
-    width: 700,
     height: 400,
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const byStationCards = await axios.post("http://localhost:8000/byStationCards/", {
+          start_date: startDate,
+          end_date: endDate,
+          location: location,
+          power_type: powerType
+        })
+
+        setTotalChargers(byStationCards.data.total_chargers);
+        setAvgPriceAfterDiscount(byStationCards.data.avg_price_after_discount);
+        setAvgUtilisationRate(byStationCards.data.avg_utilisation_rate);
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+    }
+    fetchData();
+    console.log(startDate.$d, endDate.$d)
+  }, [startDate, endDate, location, powerType])
 
   return (
     <>
@@ -99,24 +128,24 @@ function ByStation() {
                       <Typography
                         component="span"
                         sx={{
-                          fontWeight: "normal", // This applies to "Fernvale" only
+                          fontWeight: "normal",
                           fontSize: '25px'
                         }}
                       >
-                        Fernvale
+                        {location === "" ? "None" : location}
                       </Typography>
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={12} md={12} lg={4}>
-                <ByStationCard number={3} text={"Total Chargers"}></ByStationCard>
+                <ByStationCard number={totalChargers} text={"Total Chargers"}></ByStationCard>
               </Grid>
               <Grid item xs={12} md={12} lg={4}>
-                <ByStationCard number={"$0.55/kWh"} text={"Average Price After Discount"}></ByStationCard>
+                <ByStationCard number={avgPriceAfterDiscount} text={"Average Price After Discount"}></ByStationCard>
               </Grid>
               <Grid item xs={12} md={12} lg={4}>
-                <ByStationCard number={"6.8%"} text={"Average Utilisation Rate"}></ByStationCard>
+                <ByStationCard number={avgUtilisationRate} text={"Average Utilisation Rate"}></ByStationCard>
               </Grid>
             </Grid>
           </Grid>
@@ -158,11 +187,11 @@ function ByStation() {
                   label="Location"
                   onChange={handleLocationChange}
                 >
-                  {stationLocations.map((loc) => (
-                    <MenuItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </MenuItem>
-                  ))}
+                  {stations.map((station, index) => (
+                        <MenuItem key={index} value={station}>
+                          {station}
+                        </MenuItem>
+                      ))}
                 </Select>
               </FormControl>
               <FormControl fullWidth>
@@ -174,9 +203,9 @@ function ByStation() {
                   label="Power Type"
                   onChange={handlePowerTypeChange}
                 >
-                  <MenuItem value={10}>All</MenuItem>
-                  <MenuItem value={20}>Option</MenuItem>
-                  <MenuItem value={30}>Option</MenuItem>
+                  <MenuItem value={"All"}>All</MenuItem>
+                  <MenuItem value={"AC"}>AC</MenuItem>
+                  <MenuItem value={"DC"}>DC</MenuItem>
                 </Select>
               </FormControl>
             </Stack>
@@ -185,7 +214,6 @@ function ByStation() {
             <BarChart
               xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
               series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }, , { data: [2, 5, 6] },]}
-              width={1500}
               height={500}
             />
           </Grid>
@@ -197,7 +225,6 @@ function ByStation() {
                   data: [2, 5.5, 2, 8.5, 1.5, 5],
                 },
               ]}
-              width={1500}
               height={500}
             />
           </Grid>

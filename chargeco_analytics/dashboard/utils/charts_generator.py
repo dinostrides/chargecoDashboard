@@ -1150,3 +1150,128 @@ def user_across_time(charging_transactions):
 
     return fig
 
+
+# Utilisation Price Chart Data Points to JSON
+def get_util_price_chart_json(charger_charging):
+    charger_charging = charger_charging.dropna(subset=['Applicable Discount'])
+
+    charger_times = charger_charging.groupby('Station ID').agg({
+        'totalDuration': 'sum',
+        'Rate': 'mean',
+        'Applicable Discount': 'mean',
+        'Date': lambda x: x.max() - x.min()
+    }).reset_index()
+
+    charger_utilisation = charger_times.copy()
+    charger_utilisation.columns = ['Charger ID', 'Total Time', 'Rate', 'Discount', 'Time Period']
+    charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']), axis=1)
+    charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
+
+    # Convert data points to a list of dictionaries
+    data_points = charger_utilisation.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
+# Utilisation Price Chart
+def get_util_price_chart(charger_charging):
+    charger_charging = charger_charging.dropna(subset=['Applicable Discount'])
+
+    charger_times = charger_charging.groupby('Station ID').agg({
+        'totalDuration': 'sum',
+        'Rate': 'mean',
+        'Applicable Discount': 'mean',
+        'Date': lambda x: x.max() - x.min()
+    }).reset_index()
+
+    charger_utilisation = charger_times.copy()
+    charger_utilisation.columns = ['Charger ID', 'Total Time', 'Rate', 'Discount', 'Time Period']
+    charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']), axis=1)
+    charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
+
+    fig = px.scatter(
+        charger_utilisation,
+        x='Utilisation Rate',
+        y='Rate',
+        labels={"Rate": "Average Rate ($/kWh)", "Utilisation Rate": "Utilisation Rate (%)", "Discount": "Applicable Discount (%)"},
+        hover_data=['Charger ID']
+    )
+
+    height = 717 
+    fig.update_layout(
+        xaxis_title="Utilisation Rate (%)",
+        yaxis_title="Average Rate ($)",
+        xaxis=dict(tickformat=".0%", gridcolor='#999594'),
+        yaxis=dict(tickformat="$,.2f", gridcolor='#999594'),
+        paper_bgcolor='#363a41',
+        plot_bgcolor='#363a41',
+        height=height,
+        margin=dict(t=0, l=50, r=50, b=50)
+    )
+    fig.update_traces(marker=dict(color='#b22222', size=10))
+
+    return fig
+
+
+
+# Payment Mode Donut Chart Data Points to JSON
+def payment_mode_donut_chart_json(charging_transactions, start_date=min_date, end_date=max_date):
+    charging_transactions = charging_transactions.dropna(subset=['Payment By'])
+    payment_type_count = charging_transactions['Payment By'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = payment_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
+
+
+# Payment Mode Donut Chart
+def payment_mode_donut_chart(charging_transactions, start_date=min_date, end_date=max_date):
+    charging_transactions = charging_transactions.dropna(subset=['Payment By'])
+    payment_type_count = charging_transactions['Payment By'].value_counts()
+    colors = {
+        'Fleet Credit Wallet': '#29A3CC',
+        'Group Credit': '#8CD1E6',
+        'RFID': '#005D82',
+        'User Credit': '#8eaadb'
+    }
+    color_sequence = [colors[group] for group in payment_type_count.index if group in colors]
+
+    fig = px.pie(values=payment_type_count, 
+                 names=payment_type_count.index, 
+                 hole=0.7,
+                 color_discrete_sequence=color_sequence)
+
+    fig.update_traces(textinfo='percent', 
+                      textposition='outside',
+                      hovertemplate='Mode: %{label}<br>Count: %{value}<extra></extra>')
+    fig.update_layout(
+        title=dict(text=f"Payment Mode<br>({start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')})", x=0.5, y=0.95, xanchor='center'),
+        paper_bgcolor='#363a41',
+        plot_bgcolor='#363a41',
+        showlegend=True,
+        legend_title_text='Payment Mode',
+        height=430,
+        legend=dict(
+            x=0.5,
+            y=-0.5,
+            xanchor='center',
+            yanchor='middle',
+            orientation='h'
+        ),
+        margin=dict(t=100, l=50, r=50, b=20),
+    )
+    fig.add_annotation(text=f"<span style='font-size:18px; font-weight:bold;'>{charging_transactions['Payment By'].nunique()}</span><br><b>Payment Modes</b>",
+                       x=0.5, y=0.5, showarrow=False, font=dict(size=12), align="center")
+
+    return fig

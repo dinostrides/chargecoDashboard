@@ -185,7 +185,8 @@ def utilisationLeftCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    address = data.get("address")
+    charger = data.get("charger")
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -221,14 +222,16 @@ def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    address = data.get("address")
+    charger = data.get("charger")
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    clustermap_markers_json = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json_str = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json = json.loads(clustermap_markers_json_str)
 
     response = {
         "clustermap_markers_json": clustermap_markers_json
@@ -243,19 +246,29 @@ def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    address = data.get("address")
+    charger = data.get("charger")
+
+    # Load cached data if available
+    cache_key = "utilisation_chart_data"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
-    utilisation_hourly_chart_data_json  = charts_generator.util_hour_chart_json(charging_transactions)
-    # utilisation_chart_json = pio.to_json(utilisation_chart)
+    # Generate the utilisation hourly chart data
+    utilisation_hourly_chart_data_json_str = charts_generator.util_hour_chart_json(charging_transactions)
+    utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
 
     response = {
-        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json 
+        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
+
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=300)  # Cache for 5 minutes
 
     return JsonResponse(response, safe=False)
 
@@ -266,15 +279,19 @@ def utilisationBarChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    address = data.get("address")
+    charger = data.get("charger")
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    util_dayNight_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
-    util_weekdayWeekend_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+    util_dayNight_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+
+    util_dayNight_data_json = json.loads(util_dayNight_data_json_str)
+    util_weekdayWeekend_data_json = json.loads(util_weekdayWeekend_data_json_str)
 
     response = {
         'util_dayNight_data_json': util_dayNight_data_json,
@@ -283,52 +300,29 @@ def utilisationBarChart(request):
 
     return JsonResponse(response, safe=False)
 
-@require_GET
-@login_required
-def utilisation(request):
-    # Cache key for the page
-    cache_key = 'utilisation_page_data'
-    cached_data = cache.get(cache_key)
 
-    if cached_data:
-        context = cached_data
-    else:
-        # Load data
-        charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-        charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-        
-        # Calculate total number of charging sessions
-        total_charging_sessions = charging_transactions['Transaction ID'].nunique()
+###########################################################
+####################### By Station  #######################
+###########################################################
 
-        # Calculate the number of AC and DC charging sessions
-        ac_sessions = charging_transactions[charging_transactions['power_type'] == 'AC']['Transaction ID'].nunique()
-        dc_sessions = charging_transactions[charging_transactions['power_type'] == 'DC']['Transaction ID'].nunique()
+@csrf_exempt
+@require_POST
+def byStationCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date")
+    endDate = data.get("end_date")
+    location = data.get("location")
+    powerType = data.get("power_type")
 
-        # Calculate the average duration (in minutes) per AC/DC session
-        ac_avg_duration = charging_transactions[charging_transactions['power_type'] == 'AC']['totalDuration'].mean()
-        dc_avg_duration = charging_transactions[charging_transactions['power_type'] == 'DC']['totalDuration'].mean()
+    #todo: make response actual data
+    response = {
+        'total_chargers': 1,
+        'avg_price_after_discount': 1,
+        'avg_utilisation_rate': 1
+    }    
 
-        # Generate charts/maps
-        utilisation_chart = charts_generator.util_hour_chart(charging_transactions)._repr_html_()
-        utilisation_map = charts_generator.get_util_clustermap(charging_transactions)._repr_html_()
-        util_dayNight = charts_generator.util_bar_chart(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)._repr_html_()
-        util_weekdayWeekend = charts_generator.util_bar_chart(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)._repr_html_()
+    return JsonResponse(response, safe=False)
 
-        context = {
-            'utilisation_chart': utilisation_chart,
-            'utilisation_map': utilisation_map,
-            'total_charging_sessions': total_charging_sessions,
-            'ac_sessions': ac_sessions,
-            'dc_sessions': dc_sessions,
-            'ac_avg_duration': ac_avg_duration,
-            'dc_avg_duration': dc_avg_duration,
-            'util_dayNight': util_dayNight,
-            'util_weekdayWeekend': util_weekdayWeekend
-        }
-
-        # Cache the context data
-        cache.set(cache_key, context, 60 * 15)  # Cache for 15 minutes
-    return render(request, "utilisation.html", context)
 
 ###########################################################
 ####################### BY_STATION ########################
@@ -557,3 +551,82 @@ def users(request):
     }
 
     return render(request, "users.html", context)
+
+
+###########################################################
+######################### PRICING #########################
+###########################################################
+
+# Calculates average price
+@csrf_exempt
+@require_POST
+def pricingCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Calculating average rate
+    avg_price = round(sum(charging_transactions['Rate'])/len(charging_transactions), 2)
+ 
+    response = {
+        'avg_price': avg_price
+    }    
+
+    return JsonResponse(response, safe=False)
+
+# Returns payment mode chart points (JSON)
+@csrf_exempt
+@require_POST
+def pricingPaymentModeChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Payment mode data points
+    payment_mode_donut = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+
+    response = {
+        'payment_mode_donut': payment_mode_donut
+    }    
+
+    return JsonResponse(response, safe=False)
+
+# Returns utilisation price chart points (JSON)
+@csrf_exempt
+@require_POST
+def pricingUtilisationPriceChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Payment mode data points
+    util_price_chart = charts_generator.get_util_price_chart_json(charging_transactions)
+
+    response = {
+        'util_price_chart': util_price_chart
+    }    
+
+    return JsonResponse(response, safe=False)
+
+
+
+
+

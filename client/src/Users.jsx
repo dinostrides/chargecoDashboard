@@ -10,6 +10,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import UserCard from './components/cards/UserCard';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { LineChart } from '@mui/x-charts/LineChart';
+import addresses from "./datasets/utilisationAddresses.json";
 
 function Users() {
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
@@ -84,9 +85,11 @@ function Users() {
                     label="Address"
                     onChange={handleAddressChange}
                   >
-                    <MenuItem value={10}>All</MenuItem>
-                    <MenuItem value={20}>Option</MenuItem>
-                    <MenuItem value={30}>Option</MenuItem>
+                    {addresses.map((addr, index) => (
+                        <MenuItem key={index} value={addr}>
+                          {addr}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
                 <FormControl fullWidth>
@@ -178,7 +181,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -202,7 +204,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -226,7 +227,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -250,7 +250,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
