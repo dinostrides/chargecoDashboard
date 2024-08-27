@@ -44,8 +44,10 @@ function Utilisation() {
   const xAxisData = utilChartData.map(item => item.Hour);
   const seriesData = utilChartData.map(item => item["Average Utilisation"] * 100);
 
-  const [avgUtilisationByDayNight, setAvgUtilisationByDayNight] = useState([]);
-  const [avgUtilisationByWeekdayWeekend, setAvgUtilisationByWeekdayWeekend] = useState([]);
+  const [avgUtilisationDay, setAvgUtilisationDay] = useState();
+  const [avgUtilisationNight, setAvgUtilisationNight] = useState();
+  const [avgUtilisationWeekday, setAvgUtilisationWeekday] = useState();
+  const [avgUtilisationWeekend, setAvgUtilisationWeekend] = useState();
 
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
@@ -88,10 +90,14 @@ function Utilisation() {
           end_date: endDate
         })
 
-        setAvgUtilisationByDayNight(utilisationBarChart.data.util_dayNight_data_json)
-        setAvgUtilisationByWeekdayWeekend(utilisationBarChart.data.util_weekdayWeekend_data_json)
-        
-        console.log(utilisationBarChart.data.util_dayNight_data_json)
+        const dayNightData = utilisationBarChart.data.util_dayNight_data_json;
+        setAvgUtilisationDay(dayNightData[0].Utilisation);
+        setAvgUtilisationNight(dayNightData[1].Utilisation);
+
+        const weekdayWeekendData = utilisationBarChart.data.util_weekdayWeekend_data_json;
+        setAvgUtilisationWeekday(weekdayWeekendData[0].Utilisation);
+        setAvgUtilisationWeekend(weekdayWeekendData[1].Utilisation);
+
       }
       catch (error) {
         console.log(error.message)
@@ -251,7 +257,8 @@ function Utilisation() {
                   {
                     data: seriesData,
                     area: true,
-                    label: "Average Utilisation Rate (%)"
+                    label: "Average Utilisation Rate (%)",
+                    color: "pink"
                   },
                 ]}
                 height={400}
@@ -276,20 +283,18 @@ function Utilisation() {
                     >
                       <CardContent
                         sx={{
-                          height: "100%",
+                          height: "95%",
                         }}
                       >
                         <BarChart
                           series={[
-                            { data: [35, 44, 24, 34] },
-                            { data: [51, 6, 49, 30] },
-                            { data: [15, 25, 30, 50] },
-                            { data: [60, 50, 15, 25] },
+                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: 'pink' },
                           ]}
                           xAxis={[
                             {
-                              data: ["Q1", "Q2", "Q3", "Q4"],
+                              data: ["Day", "Night"],
                               scaleType: "band",
+                              label: 'Average Utilisation By Day / Night'
                             },
                           ]}
                         />
@@ -312,20 +317,18 @@ function Utilisation() {
                     >
                       <CardContent
                         sx={{
-                          height: "100%",
+                          height: "95%",
                         }}
                       >
                         <BarChart
                           series={[
-                            { data: [35, 44, 24, 34] },
-                            { data: [51, 6, 49, 30] },
-                            { data: [15, 25, 30, 50] },
-                            { data: [60, 50, 15, 25] },
+                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: 'pink' },
                           ]}
                           xAxis={[
                             {
-                              data: ["Q1", "Q2", "Q3", "Q4"],
+                              data: ["Weekday", "Weekend"],
                               scaleType: "band",
+                              label: 'Average Utilisation By Weekday / Weekend'
                             },
                           ]}
                         />
