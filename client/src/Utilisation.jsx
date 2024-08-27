@@ -234,13 +234,14 @@ function Utilisation() {
           <Grid item xs={12}>
             <Box sx={{ p: 2 }}>
               <LineChart
-                xAxis={[{ data: xAxisData }]}
+                xAxis={[{ data: xAxisData, label: "Hour of Day" }]}
                 series={[
                   {
                     data: seriesData,
+                    area: true,
+                    label: "Average Utilisation Rate (%)"
                   },
                 ]}
-                width={1500}
                 height={400}
               />
             </Box>

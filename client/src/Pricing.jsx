@@ -101,13 +101,11 @@ function Pricing() {
                   ],
                 },
               ]}
-              width={700}
               height={420}
             />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <ScatterChart
-              width={1500}
               height={700}
               series={[
                 {

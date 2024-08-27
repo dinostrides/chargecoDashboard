@@ -143,7 +143,6 @@ function Billing() {
                 }
                 return context.bar.height < 60 ? null : item.value?.toString();
               }}
-              width={1500}
               height={550}
             />
           </Grid>
@@ -160,7 +159,6 @@ function Billing() {
                 }
                 return context.bar.height < 60 ? null : item.value?.toString();
               }}
-              width={1500}
               height={550}
             />
           </Grid>

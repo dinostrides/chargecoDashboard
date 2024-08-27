@@ -181,7 +181,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -205,7 +204,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -229,7 +227,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>
@@ -253,7 +250,6 @@ function Users() {
                     ],
                   },
                 ]}
-                width={700}
                 height={420}
               />
             </Box>

@@ -49,7 +49,6 @@ function ByStation() {
         label: 'rainfall (mm)',
       },
     ],
-    width: 700,
     height: 400,
   };
 
@@ -188,7 +187,6 @@ function ByStation() {
             <BarChart
               xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
               series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }, , { data: [2, 5, 6] },]}
-              width={1500}
               height={500}
             />
           </Grid>
@@ -200,7 +198,6 @@ function ByStation() {
                   data: [2, 5.5, 2, 8.5, 1.5, 5],
                 },
               ]}
-              width={1500}
               height={500}
             />
           </Grid>
