@@ -90,7 +90,6 @@ function Overview() {
 
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr);
-        console.log("apple", tableDataArr)
       }
       catch (error) {
         console.log(error.message)
