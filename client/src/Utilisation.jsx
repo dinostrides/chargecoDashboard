@@ -23,13 +23,13 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
 import axios from 'axios';
-import addresses from "./datasets/addresses.json"
+import addresses from "./datasets/utilisationAddresses.json";
 
 
 function Utilisation() {
 
-  const [address, setAddress] = useState();
-  const [charger, setCharger] = useState();
+  const [address, setAddress] = useState("All");
+  const [charger, setCharger] = useState("All");
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
 
@@ -62,7 +62,9 @@ function Utilisation() {
       try {
         const utilisationLeftCards = await axios.post("http://localhost:8000/utilisationLeftCards/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         })
         const data = utilisationLeftCards.data
         setTotalChargingSessions(data.total_charging_sessions);
