@@ -90,6 +90,8 @@ function Overview() {
 
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr);
+        console.log(tableResponse.data)
+        console.log(tableDataArr)
       }
       catch (error) {
         console.log(error.message)
