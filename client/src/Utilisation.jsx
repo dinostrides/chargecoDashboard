@@ -48,20 +48,34 @@ function Utilisation() {
     setCharger(event.target.value);
   };
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const utilisationCards = await axios.post("http://localhost:8000/utilisationCards/", {
-  //         start_date: startDate,
-  //         end_date: endDate
-  //       })
-  //     }
-  //     catch (error) {
-  //       console.log(error.message)
-  //     }
-  //   }
-  //   fetchData();
-  // }, [startDate, endDate])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const utilisationLeftCards = await axios.post("http://localhost:8000/utilisationLeftCards/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+        const data = utilisationLeftCards.data
+        setTotalChargingSessions(data.total_charging_sessions);
+        setAcChargingStations(data.ac_sessions);
+        setDcChargingStations(data.dc_sessions);
+        setAvgMinPerAcSession(data.ac_avg_duration);
+        setAvgMinPerDcSession(data.dc_avg_duration);
+
+        const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+        console.log(utilisationClusterMap.data.clustermap_markers_json)
+        // can get data already (lat long) but need to ask about how we want to display it
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+    }
+    fetchData();
+    console.log(startDate.$d, endDate.$d)
+  }, [startDate, endDate])
 
   return (
     <>
@@ -170,7 +184,7 @@ function Utilisation() {
                         textAlign: 'center'
                       }}
                     >
-                      42573
+                      {totalChargingSessions}
                     </Typography>
                     <Typography
                       sx={{
@@ -185,19 +199,19 @@ function Utilisation() {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={25038} text={"AC Charging Stations"}></UtilisationCard>
+                <UtilisationCard number={acChargingStations} text={"AC Charging Stations"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={11397} text={"DC Charging Sessions"}></UtilisationCard>
+                <UtilisationCard number={dcChargingStations} text={"DC Charging Sessions"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={334} text={"Avg. Minutes/AC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerAcSession} text={"Avg. Minutes/AC Session"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={39} text={"Avg. Minutes/DC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerDcSession} text={"Avg. Minutes/DC Session"}></UtilisationCard>
               </Grid>
             </Grid>
           </Grid>

@@ -7,4 +7,6 @@ urlpatterns = [
     path('overviewRightCards/', views.overviewRightCards),
     path('overviewLeftCards/', views.overviewLeftCards),
     path('overviewTable/', views.overviewTable),
+    path('utilisationLeftCards/', views.utilisationLeftCards),
+    path('utilisationClusterMap/',views.utilisationClusterMap)
 ]

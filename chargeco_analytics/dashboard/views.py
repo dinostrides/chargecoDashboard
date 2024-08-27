@@ -216,6 +216,7 @@ def utilisationLeftCards(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the heatmap
+@csrf_exempt
 @require_POST
 def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -228,7 +229,8 @@ def utilisationClusterMap(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    clustermap_markers_json = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json_str = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json = json.loads(clustermap_markers_json_str)
 
     response = {
         "clustermap_markers_json": clustermap_markers_json
