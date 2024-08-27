@@ -196,6 +196,38 @@ def get_util_clustermap(charger_charging):
 
     return map
 
+# Utilisation Cluster Map (JSON)
+def get_util_clustermap_json(charger_charging):
+    charger_charging = charger_charging.dropna(subset=['latitude', 'longitude'])
+    charger_times = charger_charging.groupby('Station ID').agg({
+        'totalDuration': 'sum',
+        'latitude': 'first',
+        'longitude': 'first',
+        'Date': lambda x: x.max() - x.min()
+    }).reset_index()
+
+    charger_utilisation = charger_times.copy()
+    charger_utilisation.columns = ['Charger ID', 'Total Time', 'Latitude', 'Longitude', 'Time Period']
+    charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']) * 100, axis=1)
+    charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
+
+    # Prepare data for JSON
+    markers_data = []
+    for index, row in charger_utilisation.iterrows():
+        marker_info = {
+            'latitude': row['Latitude'],
+            'longitude': row['Longitude'],
+            'charger_id': row['Charger ID'],
+            'utilisation_rate': round(row['Utilisation Rate'], 2)
+        }
+        markers_data.append(marker_info)
+
+    # Convert to JSON format
+    markers_json = json.dumps(markers_data)
+    return markers_json
+
 # Utilisation Line Charts
 def get_util_hour_df(charging):
     def expand_transactions(charging):
@@ -273,6 +305,21 @@ def util_hour_chart(charging, start_date=min_date, end_date=max_date):
     fig.update_yaxes(gridcolor='rgba(255,255,255,0)', linecolor='white', tickcolor='white', tickformat=".0%")
 
     return fig
+
+# Utilisation Hourly Chart Data Points to JSON
+def util_hour_chart_json(charging, start_date=min_date, end_date=max_date):
+    # Prepare the data for plotting
+    pivot_df_reset = get_util_hour_df(charging)
+    pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
+    pivot_df_reset = pivot_df_reset[['Hour', 'Average Utilisation']]
+
+    # Convert data points to a list of dictionaries
+    data_points = pivot_df_reset.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
 
 # Utilisation Line Charts
 def get_util_df(charging, x_variable='Hour'):
@@ -353,6 +400,21 @@ def util_bar_chart(charging, x_variable, height=350, start_date=min_date, end_da
         )
 
     return fig
+
+# Utilisation Bar Chart Data Points to JSON
+def util_bar_chart_json(charging, x_variable, start_date, end_date):
+    # Prepare the data for plotting
+    pivot_df_reset = get_util_df(charging, x_variable=x_variable)
+    charging_melted = pivot_df_reset.melt(id_vars=[x_variable], var_name='Operator', value_name='Utilisation')
+    charging_melted['Utilisation'] = (charging_melted['Utilisation'] * 100).round(2)
+
+    # Convert data points to a list of dictionaries
+    data_points = charging_melted.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
 
 # Station Hour Chart
 def station_hour_chart(charging, height=485, start_date=min_date, end_date=max_date):
