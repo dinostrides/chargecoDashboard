@@ -40,6 +40,11 @@ function Utilisation() {
   const [avgMinPerAcSession, setAvgMinPerAcSession] = useState();
   const [avgMinPerDcSession, setAvgMinPerDcSession] = useState();
 
+  const [utilChartData, setUtilChartData] = useState([]);
+  const xAxisData = utilChartData.map(item => item.Hour);
+  const seriesData = utilChartData.map(item => item["Average Utilisation"] * 100);
+
+
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -74,7 +79,7 @@ function Utilisation() {
           end_date: endDate
         })
 
-        console.log(utilisationUtilChart.data.utilisation_hourly_chart_data_json) //works but takes > 10 seconds (to resolve)
+        setUtilChartData(utilisationUtilChart.data.utilisation_hourly_chart_data_json)
       }
       catch (error) {
         console.log(error.message)
@@ -229,10 +234,10 @@ function Utilisation() {
           <Grid item xs={12}>
             <Box sx={{ p: 2 }}>
               <LineChart
-                xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+                xAxis={[{ data: xAxisData }]}
                 series={[
                   {
-                    data: [2, 5.5, 2, 8.5, 1.5, 5],
+                    data: seriesData,
                   },
                 ]}
                 width={1500}
