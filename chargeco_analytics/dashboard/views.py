@@ -187,7 +187,6 @@ def utilisationLeftCards(request):
     endDate = data.get("end_date")
     #todo: add address + chargerid filter
 
-
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -216,6 +215,7 @@ def utilisationLeftCards(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the heatmap
+@csrf_exempt
 @require_POST
 def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -237,6 +237,7 @@ def utilisationClusterMap(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the utilisation chart
+@csrf_exempt
 @require_POST
 def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -259,6 +260,7 @@ def utilisationUtilChart(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the day/night & weekend/weekday chart
+@csrf_exempt
 @require_POST
 def utilisationBarChart(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -280,7 +282,6 @@ def utilisationBarChart(request):
     }    
 
     return JsonResponse(response, safe=False)
-
 
 @require_GET
 @login_required
@@ -328,6 +329,10 @@ def utilisation(request):
         # Cache the context data
         cache.set(cache_key, context, 60 * 15)  # Cache for 15 minutes
     return render(request, "utilisation.html", context)
+
+###########################################################
+####################### BY_STATION ########################
+###########################################################
 
 @require_GET
 @login_required
@@ -384,6 +389,10 @@ def by_station(request):
 
     return render(request, "by_station.html", context)
 
+###########################################################
+######################### BILLING #########################
+###########################################################
+
 @require_GET
 @login_required
 def billing(request):
@@ -414,6 +423,79 @@ def billing(request):
     }
     return render(request, "billing.html", context)
 
+###########################################################
+######################### PRICING #########################
+###########################################################
+
+# Calculates average price
+@csrf_exempt
+@require_POST
+def pricingCards(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Calculating average rate
+    avg_price = round(sum(charging_transactions['Rate'])/len(charging_transactions), 2)
+ 
+    response = {
+        'avg_price': avg_price
+    }    
+
+    return JsonResponse(response, safe=False)
+
+# Returns payment mode chart points (JSON)
+@csrf_exempt
+@require_POST
+def pricingPaymentModeChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Payment mode data points
+    payment_mode_donut = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+
+    response = {
+        'payment_mode_donut': payment_mode_donut
+    }    
+
+    return JsonResponse(response, safe=False)
+
+# Returns utilisation price chart points (JSON)
+@csrf_exempt
+@require_POST
+def pricingUtilisationPriceChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
+    endDate = data.get("end_date")
+    #todo: add address + chargerid filter
+
+    # Load data for the page
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Payment mode data points
+    util_price_chart = charts_generator.get_util_price_chart_json(charging_transactions)
+
+    response = {
+        'util_price_chart': util_price_chart
+    }    
+
+    return JsonResponse(response, safe=False)
+
 @require_GET
 @login_required
 def pricing(request):
@@ -434,6 +516,10 @@ def pricing(request):
         'price_util_chart': price_util_chart
     }
     return render(request, "pricing.html", context)
+
+###########################################################
+########################## USERS ##########################
+###########################################################
 
 @require_GET
 @login_required

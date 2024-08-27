@@ -88,7 +88,11 @@ def create_plotly_map(df):
     
     return fig
 
-# Utilisation Table
+########################################################
+####################### OVERVIEW #######################
+########################################################
+
+# Utilisation Table (used in overview + by_station)
 def create_util_table(charger_charging, time_window_start, time_window_end, inactive_charger_dict):
     charger_charging = charger_charging.dropna(subset=['totalDuration'])
 
@@ -129,7 +133,11 @@ def create_util_table(charger_charging, time_window_start, time_window_end, inac
 
     return charger_utilisation[['Charger ID', 'Utilisation Rate']]
 
-# Utilisation Heatmap
+###########################################################
+####################### UTILISATION #######################
+###########################################################
+
+# Utilisation Heatmap (UNUSED)
 def get_util_heatmap(charger_charging):
     charger_times = charger_charging.groupby('evse_id').agg({
         'total_time': 'mean',
@@ -149,7 +157,7 @@ def get_util_heatmap(charger_charging):
 
     return map
 
-# Utilisation Cluster Map
+# Utilisation Cluster Map (UNUNSED)
 def get_util_clustermap(charger_charging):
     charger_charging = charger_charging.dropna(subset=['latitude', 'longitude'])
     charger_times = charger_charging.groupby('Station ID').agg({
@@ -284,7 +292,7 @@ def get_util_hour_df(charging):
 
     return pivot_df
 
-# Utilisation Hourly Chart
+# Utilisation Hourly Chart (UNUSED)
 def util_hour_chart(charging, start_date=min_date, end_date=max_date):
     pivot_df_reset = get_util_hour_df(charging)
     pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
@@ -356,7 +364,7 @@ def get_util_df(charging, x_variable='Hour'):
 
     return pivot_df_reset
 
-# Utilisation Bar Chart
+# Utilisation Bar Chart (UNUSED)
 def util_bar_chart(charging, x_variable, height=350, start_date=min_date, end_date=max_date, text=""):
     pivot_df_reset = get_util_df(charging, x_variable=x_variable)
     charging_melted = pivot_df_reset.melt(id_vars=[x_variable], var_name='Operator', value_name='Utilisation')
@@ -415,6 +423,10 @@ def util_bar_chart_json(charging, x_variable, start_date, end_date):
     data_json = json.dumps(data_points)
 
     return data_json
+
+###########################################################
+####################### BY_STATION ########################
+###########################################################
 
 # Station Hour Chart
 def station_hour_chart(charging, height=485, start_date=min_date, end_date=max_date):
@@ -522,6 +534,10 @@ def util_timeseries_chart(charging, height=462.5, start_date=min_date, end_date=
     fig.update_yaxes(gridcolor='rgba(255,255,255,0)', linecolor='white', tickcolor='white', tickformat=".0%", zeroline=False)
 
     return fig
+
+###########################################################
+######################## OPERATOR #########################
+###########################################################
 
 # Utilisation Operator Chart
 def util_operator_chart(charging):
@@ -661,6 +677,10 @@ def operator_acdc_chart(charger):
 
     return figs
 
+###########################################################
+######################### BILLING #########################
+###########################################################
+
 # Energy Expenditure Table
 def energy_expenditure_table(monthly_charging):
     grouped_data = monthly_charging.groupby('evse_id').agg(total_energy=('total_energy', 'sum'), total_cost=('total_cost', 'sum')).reset_index()
@@ -795,6 +815,10 @@ def total_energy_cost_chart(monthly_charging):
 
     return fig
 
+###########################################################
+######################### PRICING #########################
+###########################################################
+
 # Payment Mode Donut Chart
 def payment_mode_donut_chart(charging_transactions, start_date=min_date, end_date=max_date):
     charging_transactions = charging_transactions.dropna(subset=['Payment By'])
@@ -836,6 +860,19 @@ def payment_mode_donut_chart(charging_transactions, start_date=min_date, end_dat
 
     return fig
 
+# Payment Mode Donut Chart Data Points to JSON
+def payment_mode_donut_chart_json(charging_transactions, start_date=min_date, end_date=max_date):
+    charging_transactions = charging_transactions.dropna(subset=['Payment By'])
+    payment_type_count = charging_transactions['Payment By'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = payment_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
 # Utilisation Price Chart
 def get_util_price_chart(charger_charging):
     charger_charging = charger_charging.dropna(subset=['Applicable Discount'])
@@ -876,6 +913,36 @@ def get_util_price_chart(charger_charging):
     fig.update_traces(marker=dict(color='#b22222', size=10))
 
     return fig
+
+# Utilisation Price Chart Data Points to JSON
+def get_util_price_chart_json(charger_charging):
+    charger_charging = charger_charging.dropna(subset=['Applicable Discount'])
+
+    charger_times = charger_charging.groupby('Station ID').agg({
+        'totalDuration': 'sum',
+        'Rate': 'mean',
+        'Applicable Discount': 'mean',
+        'Date': lambda x: x.max() - x.min()
+    }).reset_index()
+
+    charger_utilisation = charger_times.copy()
+    charger_utilisation.columns = ['Charger ID', 'Total Time', 'Rate', 'Discount', 'Time Period']
+    charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']), axis=1)
+    charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
+
+    # Convert data points to a list of dictionaries
+    data_points = charger_utilisation.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
+###########################################################
+########################## USERS ##########################
+###########################################################
 
 # User Donut Chart
 def user_donut_chart(charging_transactions):
