@@ -428,7 +428,7 @@ def util_bar_chart_json(charging, x_variable, start_date, end_date):
 ####################### BY_STATION ########################
 ###########################################################
 
-# Station Hour Chart
+# Station Hour Chart (UNUSED)
 def station_hour_chart(charging, height=485, start_date=min_date, end_date=max_date):
     pivot_df_reset = get_util_hour_df(charging)
     pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
@@ -455,6 +455,20 @@ def station_hour_chart(charging, height=485, start_date=min_date, end_date=max_d
     fig.update_yaxes(gridcolor='rgba(255,255,255,0)', linecolor='white', tickcolor='white', tickformat=".0%", range=[0, max(pivot_df_reset['Average Utilisation']) * 1.2])
 
     return fig
+
+# Station Hour Chart to JSON
+def station_hour_chart_json(charging, height=485, start_date=min_date, end_date=max_date):
+    pivot_df_reset = get_util_hour_df(charging)
+    pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
+    pivot_df_reset = pivot_df_reset[['Hour', 'Average Utilisation']]
+
+    # Convert data points to a list of dictionaries
+    data_points = pivot_df_reset.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
 
 # Utilisation Timeseries Chart
 def util_timeseries_chart(charging, height=462.5, start_date=min_date, end_date=max_date):
@@ -535,147 +549,76 @@ def util_timeseries_chart(charging, height=462.5, start_date=min_date, end_date=
 
     return fig
 
-###########################################################
-######################## OPERATOR #########################
-###########################################################
+# Utilisation Timeseries Chart to JSON
+def util_timeseries_chart_json(charging, height=462.5, start_date=min_date, end_date=max_date):
+    charging['Start Date/Time'] = pd.to_datetime(charging['Start Date/Time'], errors='coerce')
+    charging['End Date/Time'] = pd.to_datetime(charging['End Date/Time'], errors='coerce')
+    charging = charging.dropna(subset=['Start Date/Time', 'End Date/Time'])
 
-# Utilisation Operator Chart
-def util_operator_chart(charging):
-    if 'Strides' not in unique_chargers.keys():
-        charging['operator'] = charging['operator'].apply(lambda x: 'ChargEco')
+    date_range = pd.date_range(start=start_date, end=end_date).date
+    station_ids = charging['Station ID'].unique()
+    all_combinations = pd.MultiIndex.from_product([date_range, station_ids], names=['Date', 'Station ID']).to_frame(index=False)
 
-    charging['Date'] = pd.to_datetime(charging['Date'])
-    num_days = (charging['Date'].max() - charging['Date'].min()).days
-    aggregated_data = charging.groupby('operator')['totalDuration'].sum().reset_index()
-    aggregated_data['days'] = num_days
-    aggregated_data['Chargers'] = aggregated_data['operator'].apply(lambda x: unique_chargers[x])
-    aggregated_data["Utilisation"] = ((aggregated_data['totalDuration']/(aggregated_data['days'] * 24 * 60 * aggregated_data['Chargers'])) * 100).round(2)
+    all_combinations['Date'] = pd.to_datetime(all_combinations['Date']).dt.date
+    charging['Date'] = pd.to_datetime(charging['Date']).dt.date
+    merged_df = all_combinations.merge(charging, on=['Date', 'Station ID'], how='left').fillna({'totalDuration': 0, 'Site Name': ''})
 
-    colors = {
-        'GetGo': '#1f77b4',
-        'LKH': '#2ca02c',
-        'Lemon Charge': '#ff7f0e',
-        'Strides': '#d62728',
-        'ChargEco': '#add653' 
-    }
-
-    fig = px.bar(aggregated_data, y='Utilisation', x='operator', color='operator', text='Utilisation',
-                title=f'Average Utilisation by Operator<br>(Feb 2023 - Feb 2024)', color_discrete_map=colors)
-    height = 350
-    fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside', insidetextanchor='end',
-                      textfont=dict(size=14, color="white"), hovertemplate='Operator: %{x}<br>Utilisation: %{y:.2f}%<extra></extra>')
-    fig.update_layout(
-        title = dict(x=0.5, y=0.95, xanchor = 'center'),
-        yaxis_title='Average Utilisation (%)',
-        xaxis_title='Operator',
-        showlegend=False,
-        paper_bgcolor='#363a41',
-        plot_bgcolor='#363a41',
-        height=height,
-    )
-    fig.update_yaxes(range=[0, max(aggregated_data["Utilisation"]) * 1.2])
-
-    return fig
-
-# Operators Donut Chart
-def operator_donut_chart(charger):
-    operator_counts = charger['operator'].value_counts()
-    colors = {
-        'GetGo': '#1f77b4',
-        'LKH': '#2ca02c',
-        'Lemon Charge': '#ff7f0e',
-        'Strides': '#d62728',
-        'ChargEco': '#add653' 
-    }
-
-    fig = px.pie(values=operator_counts, 
-                 names=operator_counts.index, 
-                 hole=0.5,
-                 color_discrete_sequence=[colors[op] for op in operator_counts.index])
-    height = 350
-    fig.update_traces(textinfo='percent+value', textposition='outside', textfont=dict(size=14, color="white"),
-                      hovertemplate='Operator: %{label}<br>Count: %{value}<extra></extra>')
-    fig.update_layout(
-        title=dict(text="Distribution of Operators<br>(Feb 2023 - Feb 2024)", x=0.5, y=0.95, xanchor='center'),
-        paper_bgcolor='#363a41',
-        plot_bgcolor='#363a41',
-        showlegend=False,
-        height=height,
-    )
-    fig.add_annotation(text=str(sum(operator_counts)),
-                       x=0.5, y=0.5, showarrow=False, font=dict(size=20))
-
-    return fig
-
-# Price across Operators Chart
-def price_operator_chart(charger):
-    aggregated_data = charger.groupby('operator')['price'].mean().reset_index()
-    colors = {
-        'GetGo': '#1f77b4',
-        'LKH': '#2ca02c',
-        'Lemon Charge': '#ff7f0e',
-        'Strides': '#d62728',
-        'ChargEco': '#add653' 
-    }
-    
-    aggregated_data['price'] = aggregated_data['price'].round(4)
-    fig = px.bar(aggregated_data, y='price', x='operator', color='operator', text='price',
-                title=f'Average Price by Operator ($/kWh)<br>(Feb 2023 - Feb 2024)', color_discrete_map=colors)
-
-    fig.update_traces(texttemplate='%{text:$.4f}', textposition='outside', insidetextanchor='end',
-                      textfont=dict(size=14, color="white"))
-
-    height = 350
-    fig.update_layout(
-        title = dict(x=0.5, y=0.95, xanchor = 'center'),
-        yaxis_title='Average Price ($/kWh)',
-        xaxis_title='Operator',
-        showlegend=False,
-        paper_bgcolor='#363a41',
-        plot_bgcolor='#363a41',
-        height=height,
-    )
-    fig.update_yaxes(range=[0, max(aggregated_data["price"]) * 1.2])
-
-    return fig
-
-# Operator AC/DC Chart
-def operator_acdc_chart(charger):
-    aggregated_data = charger.groupby(['operator', 'power_type']).size().reset_index(name='count')
-    aggregated_data = aggregated_data.set_index(['operator', 'power_type']).unstack(fill_value=0).stack().reset_index()
-    aggregated_data.columns = ['operator', 'power_type', 'count']
-    
-    colors = {
-        'GetGo': '#1f77b4',
-        'LKH': '#2ca02c',
-        'Lemon Charge': '#ff7f0e',
-        'Strides': '#d62728',
-        'ChargEco': '#add653' 
-    }
-    
-    max_x = max(aggregated_data['count']) * 1.2
-    figs = []
-
-    for operator in aggregated_data['operator'].unique():
-        fig = px.bar(aggregated_data[aggregated_data['operator'] == operator], y='power_type', x='count', orientation='h', color='operator', text='count',
-                     color_discrete_map=colors, title=f"{operator}")
+    expanded_rows = []
+    for idx, row in merged_df.iterrows():
+        start_time = row['Start Date/Time']
+        end_time = row['End Date/Time']
+        station_id = row['Station ID']
+        site_name = row['Site Name']
+        duration = row['totalDuration']
+        date = row['Date']
         
-        default_height = 327
-        height = fig.layout.height if fig.layout.height is not None else default_height
-        fig.update_layout(
-            title = dict(x=0.5, y=0.95, xanchor = 'center'),
-            showlegend=False,
-            paper_bgcolor='#363a41',
-            plot_bgcolor='#363a41',
-            height=height/2,
-            margin=dict(l=0, r=20, t=40, b=40), 
-        )
-        fig.update_traces(textfont_size=14, textposition='outside')
-        fig.update_yaxes(autorange="reversed", title_text='')
-        fig.update_xaxes(range=[0, max_x], showticklabels=False, visible=False)
-        figs.append(fig)
+        if pd.isnull(start_time) or pd.isnull(end_time):
+            expanded_rows.append({
+                'Station ID': station_id,
+                'Site Name': site_name,
+                'Date': date,
+                'totalDuration': 0
+            })
+            continue
+        
+        current_time = start_time
+        while current_time.date() <= end_time.date():
+            if current_time.date() == end_time.date() and current_time.date() == start_time.date():
+                daily_duration = duration
+            elif current_time.date() == start_time.date():
+                daily_duration = ((current_time.replace(hour=23, minute=59) - current_time).seconds + 60) / 60
+            elif current_time.date() == end_time.date():
+                daily_duration = (end_time - end_time.replace(hour=0, minute=0)).seconds / 60
+            else:
+                daily_duration = 24 * 60
 
-    return figs
+            expanded_rows.append({
+                'Station ID': station_id,
+                'Site Name': site_name,
+                'Date': current_time.date(),
+                'totalDuration': daily_duration
+            })
+            current_time = current_time.replace(hour=0, minute=0) + datetime.timedelta(days=1)
+
+    expanded_df = pd.DataFrame(expanded_rows)
+    expanded_df['Date'] = pd.to_datetime(expanded_df['Date'])
+    expanded_df['Month'] = expanded_df['Date'].dt.to_period('M').astype(str)
+
+    grouped = expanded_df.groupby(['Site Name', 'Month']).agg({
+        'totalDuration': 'sum',
+        'Station ID': 'nunique'
+    }).reset_index()
+
+    grouped['Avg Utilisation'] = grouped['totalDuration'] / (24 * 60 * grouped['Station ID'] * grouped['Month'].apply(lambda x: pd.Period(x, freq='M').days_in_month))
+    plot_data = grouped.pivot(index='Month', columns='Site Name', values='Avg Utilisation').fillna(0)
+
+    # Convert data points to a list of dictionaries
+    data_points = plot_data.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
 
 ###########################################################
 ######################### BILLING #########################
@@ -1150,42 +1093,144 @@ def user_across_time(charging_transactions):
 
     return fig
 
+###########################################################
+################### OPERATOR (UNUSED) #####################
+###########################################################
 
-    charging_transactions = charging_transactions.dropna(subset=['Payment By'])
-    payment_type_count = charging_transactions['Payment By'].value_counts()
+# Utilisation Operator Chart
+def util_operator_chart(charging):
+    if 'Strides' not in unique_chargers.keys():
+        charging['operator'] = charging['operator'].apply(lambda x: 'ChargEco')
+
+    charging['Date'] = pd.to_datetime(charging['Date'])
+    num_days = (charging['Date'].max() - charging['Date'].min()).days
+    aggregated_data = charging.groupby('operator')['totalDuration'].sum().reset_index()
+    aggregated_data['days'] = num_days
+    aggregated_data['Chargers'] = aggregated_data['operator'].apply(lambda x: unique_chargers[x])
+    aggregated_data["Utilisation"] = ((aggregated_data['totalDuration']/(aggregated_data['days'] * 24 * 60 * aggregated_data['Chargers'])) * 100).round(2)
+
     colors = {
-        'Fleet Credit Wallet': '#29A3CC',
-        'Group Credit': '#8CD1E6',
-        'RFID': '#005D82',
-        'User Credit': '#8eaadb'
+        'GetGo': '#1f77b4',
+        'LKH': '#2ca02c',
+        'Lemon Charge': '#ff7f0e',
+        'Strides': '#d62728',
+        'ChargEco': '#add653' 
     }
-    color_sequence = [colors[group] for group in payment_type_count.index if group in colors]
 
-    fig = px.pie(values=payment_type_count, 
-                 names=payment_type_count.index, 
-                 hole=0.7,
-                 color_discrete_sequence=color_sequence)
-
-    fig.update_traces(textinfo='percent', 
-                      textposition='outside',
-                      hovertemplate='Mode: %{label}<br>Count: %{value}<extra></extra>')
+    fig = px.bar(aggregated_data, y='Utilisation', x='operator', color='operator', text='Utilisation',
+                title=f'Average Utilisation by Operator<br>(Feb 2023 - Feb 2024)', color_discrete_map=colors)
+    height = 350
+    fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside', insidetextanchor='end',
+                      textfont=dict(size=14, color="white"), hovertemplate='Operator: %{x}<br>Utilisation: %{y:.2f}%<extra></extra>')
     fig.update_layout(
-        title=dict(text=f"Payment Mode<br>({start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')})", x=0.5, y=0.95, xanchor='center'),
+        title = dict(x=0.5, y=0.95, xanchor = 'center'),
+        yaxis_title='Average Utilisation (%)',
+        xaxis_title='Operator',
+        showlegend=False,
         paper_bgcolor='#363a41',
         plot_bgcolor='#363a41',
-        showlegend=True,
-        legend_title_text='Payment Mode',
-        height=430,
-        legend=dict(
-            x=0.5,
-            y=-0.5,
-            xanchor='center',
-            yanchor='middle',
-            orientation='h'
-        ),
-        margin=dict(t=100, l=50, r=50, b=20),
+        height=height,
     )
-    fig.add_annotation(text=f"<span style='font-size:18px; font-weight:bold;'>{charging_transactions['Payment By'].nunique()}</span><br><b>Payment Modes</b>",
-                       x=0.5, y=0.5, showarrow=False, font=dict(size=12), align="center")
+    fig.update_yaxes(range=[0, max(aggregated_data["Utilisation"]) * 1.2])
 
     return fig
+
+# Operators Donut Chart
+def operator_donut_chart(charger):
+    operator_counts = charger['operator'].value_counts()
+    colors = {
+        'GetGo': '#1f77b4',
+        'LKH': '#2ca02c',
+        'Lemon Charge': '#ff7f0e',
+        'Strides': '#d62728',
+        'ChargEco': '#add653' 
+    }
+
+    fig = px.pie(values=operator_counts, 
+                 names=operator_counts.index, 
+                 hole=0.5,
+                 color_discrete_sequence=[colors[op] for op in operator_counts.index])
+    height = 350
+    fig.update_traces(textinfo='percent+value', textposition='outside', textfont=dict(size=14, color="white"),
+                      hovertemplate='Operator: %{label}<br>Count: %{value}<extra></extra>')
+    fig.update_layout(
+        title=dict(text="Distribution of Operators<br>(Feb 2023 - Feb 2024)", x=0.5, y=0.95, xanchor='center'),
+        paper_bgcolor='#363a41',
+        plot_bgcolor='#363a41',
+        showlegend=False,
+        height=height,
+    )
+    fig.add_annotation(text=str(sum(operator_counts)),
+                       x=0.5, y=0.5, showarrow=False, font=dict(size=20))
+
+    return fig
+
+# Price across Operators Chart
+def price_operator_chart(charger):
+    aggregated_data = charger.groupby('operator')['price'].mean().reset_index()
+    colors = {
+        'GetGo': '#1f77b4',
+        'LKH': '#2ca02c',
+        'Lemon Charge': '#ff7f0e',
+        'Strides': '#d62728',
+        'ChargEco': '#add653' 
+    }
+    
+    aggregated_data['price'] = aggregated_data['price'].round(4)
+    fig = px.bar(aggregated_data, y='price', x='operator', color='operator', text='price',
+                title=f'Average Price by Operator ($/kWh)<br>(Feb 2023 - Feb 2024)', color_discrete_map=colors)
+
+    fig.update_traces(texttemplate='%{text:$.4f}', textposition='outside', insidetextanchor='end',
+                      textfont=dict(size=14, color="white"))
+
+    height = 350
+    fig.update_layout(
+        title = dict(x=0.5, y=0.95, xanchor = 'center'),
+        yaxis_title='Average Price ($/kWh)',
+        xaxis_title='Operator',
+        showlegend=False,
+        paper_bgcolor='#363a41',
+        plot_bgcolor='#363a41',
+        height=height,
+    )
+    fig.update_yaxes(range=[0, max(aggregated_data["price"]) * 1.2])
+
+    return fig
+
+# Operator AC/DC Chart
+def operator_acdc_chart(charger):
+    aggregated_data = charger.groupby(['operator', 'power_type']).size().reset_index(name='count')
+    aggregated_data = aggregated_data.set_index(['operator', 'power_type']).unstack(fill_value=0).stack().reset_index()
+    aggregated_data.columns = ['operator', 'power_type', 'count']
+    
+    colors = {
+        'GetGo': '#1f77b4',
+        'LKH': '#2ca02c',
+        'Lemon Charge': '#ff7f0e',
+        'Strides': '#d62728',
+        'ChargEco': '#add653' 
+    }
+    
+    max_x = max(aggregated_data['count']) * 1.2
+    figs = []
+
+    for operator in aggregated_data['operator'].unique():
+        fig = px.bar(aggregated_data[aggregated_data['operator'] == operator], y='power_type', x='count', orientation='h', color='operator', text='count',
+                     color_discrete_map=colors, title=f"{operator}")
+        
+        default_height = 327
+        height = fig.layout.height if fig.layout.height is not None else default_height
+        fig.update_layout(
+            title = dict(x=0.5, y=0.95, xanchor = 'center'),
+            showlegend=False,
+            paper_bgcolor='#363a41',
+            plot_bgcolor='#363a41',
+            height=height/2,
+            margin=dict(l=0, r=20, t=40, b=40), 
+        )
+        fig.update_traces(textfont_size=14, textposition='outside')
+        fig.update_yaxes(autorange="reversed", title_text='')
+        fig.update_xaxes(range=[0, max_x], showticklabels=False, visible=False)
+        figs.append(fig)
+
+    return figs

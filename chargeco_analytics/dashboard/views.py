@@ -300,9 +300,8 @@ def utilisationBarChart(request):
 
     return JsonResponse(response, safe=False)
 
-
 ###########################################################
-####################### By Station  #######################
+####################### BY_STATION ########################
 ###########################################################
 
 @csrf_exempt
@@ -314,19 +313,151 @@ def byStationCards(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-    #todo: make response actual data
+    # Load data
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Get unique site names for the dropdown filter
+    site_names = charging_transactions['Site Name'].unique()
+
+    # Get the selected site name from location
+    selected_site_name = location
+
+    # Filter the data based on the selected site name
+    if selected_site_name:
+        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
+    else:
+        # filtered_transactions = pd.DataFrame()  # Create an empty DataFrame to avoid errors
+        filtered_transactions = charging_transactions  # If no site is selected, show all data
+
+    # Creat df for filtered transactions (['Charger ID', 'Utilisation Rate'])
+    charger_utilisation = charts_generator.create_util_table(filtered_transactions, min_date, max_date, inactive_charger_dict=inactive_chargers)
+
+    # Determining total chargers, avg. price and avg. utilisation rate
+    if len(filtered_transactions) == 0:
+        num_chargers = 0
+        price = 'NA'
+        avg_price = 0
+        avg_util = 0
+    else:
+        num_chargers = filtered_transactions['Station ID'].nunique()
+        prices = list(filtered_transactions['Rate'])
+        avg_price = round(sum(prices)/len(prices), 2)
+        avg_util = round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation), 2)
+
+
     response = {
-        'total_chargers': 1,
-        'avg_price_after_discount': 1,
-        'avg_utilisation_rate': 1
+        'num_chargers': num_chargers,
+        'avg_price': avg_price,
+        'avg_util': avg_util
     }    
 
     return JsonResponse(response, safe=False)
 
+@csrf_exempt
+@require_POST
+def byStationHour(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date")
+    endDate = data.get("end_date")
+    location = data.get("location")
+    powerType = data.get("power_type")
 
-###########################################################
-####################### BY_STATION ########################
-###########################################################
+    # Load data
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Get unique site names for the dropdown filter
+    site_names = charging_transactions['Site Name'].unique()
+
+    # Get the selected site name from the GET parameters
+    selected_site_name = request.GET.get('site_name')
+
+    # Filter the data based on the selected site name
+    if selected_site_name:
+        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
+    else:
+        filtered_transactions = charging_transactions  # If no site is selected, show all data
+
+    station_hour = charts_generator.station_hour_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+
+    response = {
+        'station_hour': station_hour
+    }    
+
+    return JsonResponse(response, safe=False)
+
+@csrf_exempt
+@require_POST
+def byStationUtilBarChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date")
+    endDate = data.get("end_date")
+    location = data.get("location")
+    powerType = data.get("power_type")
+
+    # Load data
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Get unique site names for the dropdown filter
+    site_names = charging_transactions['Site Name'].unique()
+
+    # Get the selected site name from the GET parameters
+    selected_site_name = request.GET.get('site_name')
+
+    # Filter the data based on the selected site name
+    if selected_site_name:
+        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
+    else:
+        filtered_transactions = charging_transactions  # If no site is selected, show all data
+
+    util_dayNight = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+    
+    response = {
+        'util_dayNight': util_dayNight,
+        'util_weekdayWeekend': util_weekdayWeekend
+    }    
+
+    return JsonResponse(response, safe=False)
+
+@csrf_exempt
+@require_POST
+def byStationTimeSeriesChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date")
+    endDate = data.get("end_date")
+    location = data.get("location")
+    powerType = data.get("power_type")
+
+    # Load data
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Get unique site names for the dropdown filter
+    site_names = charging_transactions['Site Name'].unique()
+
+    # Get the selected site name from the GET parameters
+    selected_site_name = request.GET.get('site_name')
+
+    # Filter the data based on the selected site name
+    if selected_site_name:
+        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
+    else:
+        filtered_transactions = charging_transactions  # If no site is selected, show all data
+
+    util_timeseries = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)._repr_html_()
+    
+    response = {
+        'util_timeseries': util_timeseries
+    }    
+
+    return JsonResponse(response, safe=False)
 
 @require_GET
 @login_required
@@ -551,80 +682,6 @@ def users(request):
     }
 
     return render(request, "users.html", context)
-
-
-###########################################################
-######################### PRICING #########################
-###########################################################
-
-# Calculates average price
-@csrf_exempt
-@require_POST
-def pricingCards(request):
-    data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
-    endDate = data.get("end_date")
-    #todo: add address + chargerid filter
-
-    # Load data for the page
-    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
-
-    # Calculating average rate
-    avg_price = round(sum(charging_transactions['Rate'])/len(charging_transactions), 2)
- 
-    response = {
-        'avg_price': avg_price
-    }    
-
-    return JsonResponse(response, safe=False)
-
-# Returns payment mode chart points (JSON)
-@csrf_exempt
-@require_POST
-def pricingPaymentModeChart(request):
-    data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
-    endDate = data.get("end_date")
-    #todo: add address + chargerid filter
-
-    # Load data for the page
-    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
-
-    # Payment mode data points
-    payment_mode_donut = charts_generator.payment_mode_donut_chart_json(charging_transactions)
-
-    response = {
-        'payment_mode_donut': payment_mode_donut
-    }    
-
-    return JsonResponse(response, safe=False)
-
-# Returns utilisation price chart points (JSON)
-@csrf_exempt
-@require_POST
-def pricingUtilisationPriceChart(request):
-    data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
-    endDate = data.get("end_date")
-    #todo: add address + chargerid filter
-
-    # Load data for the page
-    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
-
-    # Payment mode data points
-    util_price_chart = charts_generator.get_util_price_chart_json(charging_transactions)
-
-    response = {
-        'util_price_chart': util_price_chart
-    }    
-
-    return JsonResponse(response, safe=False)
 
 
 
