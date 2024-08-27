@@ -40,6 +40,15 @@ function Utilisation() {
   const [avgMinPerAcSession, setAvgMinPerAcSession] = useState();
   const [avgMinPerDcSession, setAvgMinPerDcSession] = useState();
 
+  const [utilChartData, setUtilChartData] = useState([]);
+  const xAxisData = utilChartData.map(item => item.Hour);
+  const seriesData = utilChartData.map(item => item["Average Utilisation"] * 100);
+
+  const [avgUtilisationDay, setAvgUtilisationDay] = useState();
+  const [avgUtilisationNight, setAvgUtilisationNight] = useState();
+  const [avgUtilisationWeekday, setAvgUtilisationWeekday] = useState();
+  const [avgUtilisationWeekend, setAvgUtilisationWeekend] = useState();
+
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -48,20 +57,55 @@ function Utilisation() {
     setCharger(event.target.value);
   };
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const utilisationCards = await axios.post("http://localhost:8000/utilisationCards/", {
-  //         start_date: startDate,
-  //         end_date: endDate
-  //       })
-  //     }
-  //     catch (error) {
-  //       console.log(error.message)
-  //     }
-  //   }
-  //   fetchData();
-  // }, [startDate, endDate])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const utilisationLeftCards = await axios.post("http://localhost:8000/utilisationLeftCards/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+        const data = utilisationLeftCards.data
+        setTotalChargingSessions(data.total_charging_sessions);
+        setAcChargingStations(data.ac_sessions);
+        setDcChargingStations(data.dc_sessions);
+        setAvgMinPerAcSession(data.ac_avg_duration);
+        setAvgMinPerDcSession(data.dc_avg_duration);
+
+        const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+        // console.log(utilisationClusterMap.data.clustermap_markers_json)
+        // can get data already (lat long) but need to ask about how we want to display it
+
+        const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+
+        setUtilChartData(utilisationUtilChart.data.utilisation_hourly_chart_data_json)
+
+        const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
+          start_date: startDate,
+          end_date: endDate
+        })
+
+        const dayNightData = utilisationBarChart.data.util_dayNight_data_json;
+        setAvgUtilisationDay(dayNightData[0].Utilisation);
+        setAvgUtilisationNight(dayNightData[1].Utilisation);
+
+        const weekdayWeekendData = utilisationBarChart.data.util_weekdayWeekend_data_json;
+        setAvgUtilisationWeekday(weekdayWeekendData[0].Utilisation);
+        setAvgUtilisationWeekend(weekdayWeekendData[1].Utilisation);
+
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+    }
+    fetchData();
+    console.log(startDate.$d, endDate.$d)
+  }, [startDate, endDate])
 
   return (
     <>
@@ -170,7 +214,7 @@ function Utilisation() {
                         textAlign: 'center'
                       }}
                     >
-                      42573
+                      {totalChargingSessions}
                     </Typography>
                     <Typography
                       sx={{
@@ -185,19 +229,19 @@ function Utilisation() {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={25038} text={"AC Charging Stations"}></UtilisationCard>
+                <UtilisationCard number={acChargingStations} text={"AC Charging Stations"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={11397} text={"DC Charging Sessions"}></UtilisationCard>
+                <UtilisationCard number={dcChargingStations} text={"DC Charging Sessions"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={334} text={"Avg. Minutes/AC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerAcSession} text={"Avg. Minutes/AC Session"}></UtilisationCard>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={39} text={"Avg. Minutes/DC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerDcSession} text={"Avg. Minutes/DC Session"}></UtilisationCard>
               </Grid>
             </Grid>
           </Grid>
@@ -208,13 +252,15 @@ function Utilisation() {
           <Grid item xs={12}>
             <Box sx={{ p: 2 }}>
               <LineChart
-                xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+                xAxis={[{ data: xAxisData, label: "Hour of Day" }]}
                 series={[
                   {
-                    data: [2, 5.5, 2, 8.5, 1.5, 5],
+                    data: seriesData,
+                    area: true,
+                    label: "Average Utilisation Rate (%)",
+                    color: "pink"
                   },
                 ]}
-                width={1500}
                 height={400}
               />
             </Box>
@@ -237,20 +283,18 @@ function Utilisation() {
                     >
                       <CardContent
                         sx={{
-                          height: "100%",
+                          height: "95%",
                         }}
                       >
                         <BarChart
                           series={[
-                            { data: [35, 44, 24, 34] },
-                            { data: [51, 6, 49, 30] },
-                            { data: [15, 25, 30, 50] },
-                            { data: [60, 50, 15, 25] },
+                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: 'pink' },
                           ]}
                           xAxis={[
                             {
-                              data: ["Q1", "Q2", "Q3", "Q4"],
+                              data: ["Day", "Night"],
                               scaleType: "band",
+                              label: 'Average Utilisation By Day / Night'
                             },
                           ]}
                         />
@@ -273,20 +317,18 @@ function Utilisation() {
                     >
                       <CardContent
                         sx={{
-                          height: "100%",
+                          height: "95%",
                         }}
                       >
                         <BarChart
                           series={[
-                            { data: [35, 44, 24, 34] },
-                            { data: [51, 6, 49, 30] },
-                            { data: [15, 25, 30, 50] },
-                            { data: [60, 50, 15, 25] },
+                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: 'pink' },
                           ]}
                           xAxis={[
                             {
-                              data: ["Q1", "Q2", "Q3", "Q4"],
+                              data: ["Weekday", "Weekend"],
                               scaleType: "band",
+                              label: 'Average Utilisation By Weekday / Weekend'
                             },
                           ]}
                         />

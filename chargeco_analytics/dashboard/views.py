@@ -216,6 +216,7 @@ def utilisationLeftCards(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the heatmap
+@csrf_exempt
 @require_POST
 def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -228,7 +229,8 @@ def utilisationClusterMap(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    clustermap_markers_json = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json_str = charts_generator.get_util_clustermap_json(charging_transactions)
+    clustermap_markers_json = json.loads(clustermap_markers_json_str)
 
     response = {
         "clustermap_markers_json": clustermap_markers_json
@@ -237,28 +239,36 @@ def utilisationClusterMap(request):
     return JsonResponse(response, safe=False)
 
 #this function returns the utilisation chart
+@csrf_exempt
 @require_POST
 def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
-    endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+
+    # Load cached data if available
+    cache_key = "utilisation_chart_data"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
-    utilisation_hourly_chart_data_json  = charts_generator.util_hour_chart_json(charging_transactions)
-    # utilisation_chart_json = pio.to_json(utilisation_chart)
+    # Generate the utilisation hourly chart data
+    utilisation_hourly_chart_data_json_str = charts_generator.util_hour_chart_json(charging_transactions)
+    utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
 
     response = {
-        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json 
+        'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
+
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=300)  # Cache for 5 minutes
 
     return JsonResponse(response, safe=False)
 
 #this function returns the day/night & weekend/weekday chart
+@csrf_exempt
 @require_POST
 def utilisationBarChart(request):
     data = json.loads(request.body.decode('utf-8'))
@@ -271,8 +281,11 @@ def utilisationBarChart(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    util_dayNight_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
-    util_weekdayWeekend_data_json = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+    util_dayNight_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+
+    util_dayNight_data_json = json.loads(util_dayNight_data_json_str)
+    util_weekdayWeekend_data_json = json.loads(util_weekdayWeekend_data_json_str)
 
     response = {
         'util_dayNight_data_json': util_dayNight_data_json,
