@@ -12,4 +12,7 @@ urlpatterns = [
     path('utilisationUtilChart/', views.utilisationUtilChart),
     path('utilisationBarChart/', views.utilisationBarChart),
     path('byStationCards/', views.byStationCards),
+    path('byStationHour/', views.byStationHour),
+    path('byStationTimeSeriesChart/', views.byStationTimeSeriesChart),
+    path('byStationUtilBarChart/', views.byStationUtilBarChart)
 ]

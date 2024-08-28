@@ -239,11 +239,12 @@ function Utilisation() {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={avgMinPerAcSession} text={"Avg. Minutes/AC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerAcSession !== undefined ? avgMinPerAcSession.toFixed(2) : ''} text={"Avg. Minutes/AC Session"} />
               </Grid>
 
+
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={avgMinPerDcSession} text={"Avg. Minutes/DC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerDcSession !== undefined ? avgMinPerDcSession.toFixed(2) : ''} text={"Avg. Minutes/DC Session"}></UtilisationCard>
               </Grid>
             </Grid>
           </Grid>

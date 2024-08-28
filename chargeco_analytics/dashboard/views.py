@@ -351,7 +351,8 @@ def byStationCards(request):
         'num_chargers': num_chargers,
         'avg_price': avg_price,
         'avg_util': avg_util
-    }    
+    }
+
 
     return JsonResponse(response, safe=False)
 
@@ -381,7 +382,9 @@ def byStationHour(request):
     else:
         filtered_transactions = charging_transactions  # If no site is selected, show all data
 
-    station_hour = charts_generator.station_hour_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+    station_hour_str = charts_generator.station_hour_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+
+    station_hour = json.loads(station_hour_str)
 
     response = {
         'station_hour': station_hour
@@ -415,8 +418,11 @@ def byStationUtilBarChart(request):
     else:
         filtered_transactions = charging_transactions  # If no site is selected, show all data
 
-    util_dayNight = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
-    util_weekdayWeekend = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+    util_dayNight_str = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
+    util_weekdayWeekend_str = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
+
+    util_dayNight = json.loads(util_dayNight_str)
+    util_weekdayWeekend = json.loads(util_weekdayWeekend_str)
     
     response = {
         'util_dayNight': util_dayNight,
@@ -451,11 +457,12 @@ def byStationTimeSeriesChart(request):
     else:
         filtered_transactions = charging_transactions  # If no site is selected, show all data
 
-    util_timeseries = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+    util_timeseries_str = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+    util_timeseries = json.loads(util_timeseries_str)
     
     response = {
         'util_timeseries': util_timeseries
-    }    
+    }
 
     return JsonResponse(response, safe=False)
 
