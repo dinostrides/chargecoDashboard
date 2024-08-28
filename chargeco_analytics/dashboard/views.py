@@ -451,7 +451,7 @@ def byStationTimeSeriesChart(request):
     else:
         filtered_transactions = charging_transactions  # If no site is selected, show all data
 
-    util_timeseries = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)._repr_html_()
+    util_timeseries = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
     
     response = {
         'util_timeseries': util_timeseries
