@@ -9,7 +9,6 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { PieChart } from '@mui/x-charts/PieChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
-import { scatterdata } from './datasets/scatterdata.jsx';
 import PricingCard from './components/cards/PricingCard.jsx';
 import axios from 'axios';
 
@@ -22,6 +21,7 @@ function Pricing() {
 
   const [avgPrice, setAvgPrice] = useState();
   const [pieChartData, setPieChartData] = useState();
+  const [pricingRateUtilisationChart, setPricingRateUtilisationChart] = useState();
 
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
@@ -45,6 +45,14 @@ function Pricing() {
         })
 
         setPieChartData(pricingPaymentModeChart.data.payment_mode_donut);
+
+        const pricingUtilisationPriceChart = await axios.post('http://localhost:8000/pricingUtilisationPriceChart/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        setPricingRateUtilisationChart(pricingUtilisationPriceChart.data.util_price_chart)
 
       }
       catch (error) {
@@ -137,19 +145,19 @@ function Pricing() {
               height={420}
             />
 
-
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <ScatterChart
               height={700}
               series={[
                 {
-                  label: 'Series A',
-                  data: scatterdata.map((v) => ({ x: v.x1, y: v.y1, id: v.id })),
-                },
-                {
-                  label: 'Series B',
-                  data: scatterdata.map((v) => ({ x: v.x1, y: v.y2, id: v.id })),
+                  data: pricingRateUtilisationChart
+                    ? pricingRateUtilisationChart.map((v) => ({
+                        x: v['Utilisation Rate'],
+                        y: v['Rate'],
+                        id: v['Charger ID'],
+                      }))
+                    : [],
                 },
               ]}
             />

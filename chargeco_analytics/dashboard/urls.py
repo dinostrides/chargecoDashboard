@@ -17,4 +17,5 @@ urlpatterns = [
     path('byStationUtilBarChart/', views.byStationUtilBarChart),
     path('pricingCards/', views.pricingCards),
     path('pricingPaymentModeChart/', views.pricingPaymentModeChart),
+    path('pricingUtilisationPriceChart/', views.pricingUtilisationPriceChart),
 ]

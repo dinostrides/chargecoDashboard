@@ -11,12 +11,10 @@ from django.core.cache import cache
 from django.views import View
 import pandas as pd
 import json
-import datetime
 from .utils import data_loader
 from .utils import charts_generator
 import plotly.express as px
 import plotly.io as pio
-import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -613,7 +611,11 @@ def pricingPaymentModeChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+
+    cache_key = "pricingPaymentModeChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -628,6 +630,8 @@ def pricingPaymentModeChart(request):
         'payment_mode_donut': payment_mode_donut
     }
 
+    cache.set(cache_key, response, timeout=3000)
+
     return JsonResponse(response, safe=False)
 
 # Returns utilisation price chart points (JSON)
@@ -637,7 +641,11 @@ def pricingUtilisationPriceChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+
+    cache_key = "pricingUtilisationPriceChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -645,11 +653,14 @@ def pricingUtilisationPriceChart(request):
     # inactive_chargers = data_loader.load_inactive_chargers()
 
     # Payment mode data points
-    util_price_chart = charts_generator.get_util_price_chart_json(charging_transactions)
+    util_price_chart_str = charts_generator.get_util_price_chart_json(charging_transactions)
+    util_price_chart = json.loads(util_price_chart_str)
 
     response = {
         'util_price_chart': util_price_chart
     }    
+
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 

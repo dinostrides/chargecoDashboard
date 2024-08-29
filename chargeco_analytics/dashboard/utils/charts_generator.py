@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import datetime
 import random
-import re
 import json
 import plotly.express as px
 import plotly.io as pio
