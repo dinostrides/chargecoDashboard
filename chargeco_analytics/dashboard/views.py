@@ -11,12 +11,10 @@ from django.core.cache import cache
 from django.views import View
 import pandas as pd
 import json
-import datetime
 from .utils import data_loader
 from .utils import charts_generator
 import plotly.express as px
 import plotly.io as pio
-import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -250,7 +248,7 @@ def utilisationUtilChart(request):
     charger = data.get("charger")
 
     # Load cached data if available
-    cache_key = "utilisation_chart_data"
+    cache_key = "utilisationUtilChart"
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
@@ -282,6 +280,12 @@ def utilisationBarChart(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Load cached data if available
+    cache_key = "utilisationBarChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -297,6 +301,8 @@ def utilisationBarChart(request):
         'util_dayNight_data_json': util_dayNight_data_json,
         'util_weekdayWeekend_data_json':util_weekdayWeekend_data_json
     }    
+
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -365,6 +371,12 @@ def byStationHour(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
+    # Load cached data if available
+    cache_key = "byStationHour"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -390,6 +402,8 @@ def byStationHour(request):
         'station_hour': station_hour
     }    
 
+    cache.set(cache_key, response, timeout=3000)
+
     return JsonResponse(response, safe=False)
 
 @csrf_exempt
@@ -400,6 +414,12 @@ def byStationUtilBarChart(request):
     endDate = data.get("end_date")
     location = data.get("location")
     powerType = data.get("power_type")
+
+    # Load cached data if available
+    cache_key = "byStationUtilBarChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -428,6 +448,8 @@ def byStationUtilBarChart(request):
         'util_dayNight': util_dayNight,
         'util_weekdayWeekend': util_weekdayWeekend
     }    
+
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -566,7 +588,7 @@ def pricingCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    power_type = data.get("power_type")
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -589,7 +611,11 @@ def pricingPaymentModeChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+
+    cache_key = "pricingPaymentModeChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -597,11 +623,14 @@ def pricingPaymentModeChart(request):
     # inactive_chargers = data_loader.load_inactive_chargers()
 
     # Payment mode data points
-    payment_mode_donut = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+    payment_mode_donut_str = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+    payment_mode_donut = json.loads(payment_mode_donut_str)
 
     response = {
         'payment_mode_donut': payment_mode_donut
-    }    
+    }
+
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -612,7 +641,11 @@ def pricingUtilisationPriceChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+
+    cache_key = "pricingUtilisationPriceChart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -620,11 +653,14 @@ def pricingUtilisationPriceChart(request):
     # inactive_chargers = data_loader.load_inactive_chargers()
 
     # Payment mode data points
-    util_price_chart = charts_generator.get_util_price_chart_json(charging_transactions)
+    util_price_chart_str = charts_generator.get_util_price_chart_json(charging_transactions)
+    util_price_chart = json.loads(util_price_chart_str)
 
     response = {
         'util_price_chart': util_price_chart
     }    
+
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 

@@ -23,6 +23,7 @@ import LeafletMap from "./components/LeafletMap";
 import OverviewCard from "./components/cards/OverviewCard";
 import SortableTable from './components/SortableTable'
 import axios from 'axios';
+import LoadingOverlay from "./components/LoadingOverlay";
 
 function Overview() {
   const today = dayjs();
@@ -32,6 +33,7 @@ function Overview() {
   const [locationStatus, setLocationStatus] = useState("All");
   const [powerType, setPowerType] = useState("All");
   const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
+  const [isLoading, setIsLoading] = useState(true);
 
   //Left cards
   const [locationsUtilised, setLocationsUtilised] = useState();
@@ -57,6 +59,8 @@ function Overview() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+
         const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
           location_status: locationStatus,
           power_type: powerType
@@ -94,12 +98,19 @@ function Overview() {
       catch (error) {
         console.log(error.message)
       }
+      finally {
+      setIsLoading(false); // Ensure this is executed even if there's an error
+    }
     }
     fetchData();
   }, [startDate, endDate])
 
   return (
-    <>
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+
+      <div>
+      <>
       <Sidebar tab={"Overview"} />
       <Box
         sx={{
@@ -275,6 +286,8 @@ function Overview() {
         </Grid>
       </Box>
     </>
+      </div>
+    </div>
   );
 }
 

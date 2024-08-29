@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar'
 import { Box, Typography, Grid, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -7,24 +7,72 @@ import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { PieChart } from '@mui/x-charts/PieChart';
+import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
-import { scatterdata } from './datasets/scatterdata.jsx';
 import PricingCard from './components/cards/PricingCard.jsx';
+import axios from 'axios';
+import LoadingOverlay from './components/LoadingOverlay.jsx';
 
 function Pricing() {
+  const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
   const [startDate, setStartDate] = useState(oneYearAgo);
   const [endDate, setEndDate] = useState(today);
   const [powerType, setPowerType] = useState("All");
 
+  const [avgPrice, setAvgPrice] = useState();
+  const [pieChartData, setPieChartData] = useState();
+  const [pricingRateUtilisationChart, setPricingRateUtilisationChart] = useState();
+
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
   }
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const pricingCards = await axios.post('http://localhost:8000/pricingCards/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        setAvgPrice(pricingCards.data.avg_price)
+
+        const pricingPaymentModeChart = await axios.post('http://localhost:8000/pricingPaymentModeChart/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        setPieChartData(pricingPaymentModeChart.data.payment_mode_donut);
+
+        const pricingUtilisationPriceChart = await axios.post('http://localhost:8000/pricingUtilisationPriceChart/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        setPricingRateUtilisationChart(pricingUtilisationPriceChart.data.util_price_chart)
+
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+      finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [startDate, endDate, powerType])
+
   return (
-    <>
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={'Pricing'}></Sidebar>
       <Box sx={{
         display: 'flex',
@@ -85,36 +133,58 @@ function Pricing() {
                       <MenuItem value={"DC"}>DC</MenuItem>
                     </Select>
                   </FormControl>
-                  <PricingCard number={"$0.58/kWh"} text={"Average Rate After Discount"}></PricingCard>
+                  <PricingCard number={avgPrice} text={"Average Rate After Discount"}></PricingCard>
                 </Stack>
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={6} marginTop={'20px'}>
-            <PieChart
-              series={[
-                {
-                  data: [
-                    { id: 0, value: 10, label: 'series A' },
-                    { id: 1, value: 15, label: 'series B' },
-                    { id: 2, value: 20, label: 'series C' },
-                  ],
-                },
-              ]}
-              height={420}
-            />
+          <PieChart
+      series={[
+        {
+          arcLabel: (item) => `${item.label} (${item.value})`,
+          arcLabelMinAngle: 45,
+          data: pieChartData
+            ? Object.entries(pieChartData).map(([label, value], id) => ({
+                id,
+                value,
+                label,
+              }))
+            : [],
+        },
+      ]}
+      sx={{
+        [`& .${pieArcLabelClasses.root}`]: {
+          fill: 'white',
+          fontWeight: 'bold',
+        },
+      }}
+      height={420}
+    />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <ScatterChart
               height={700}
+              grid={{ vertical: true, horizontal: true }}
+              xAxis={[
+                {
+                  label: "Utilisation Rate (%)",
+                },
+              ]}
+              yAxis={[
+                {
+                  label: "Average Rate ($)",
+                },
+              ]}
               series={[
                 {
-                  label: 'Series A',
-                  data: scatterdata.map((v) => ({ x: v.x1, y: v.y1, id: v.id })),
-                },
-                {
-                  label: 'Series B',
-                  data: scatterdata.map((v) => ({ x: v.x1, y: v.y2, id: v.id })),
+                  data: pricingRateUtilisationChart
+                    ? pricingRateUtilisationChart.map((v) => ({
+                        x: v['Utilisation Rate'] * 100,
+                        y: v['Rate'],
+                        id: v['Charger ID'],
+                      }))
+                    : [],
                 },
               ]}
             />
@@ -122,6 +192,9 @@ function Pricing() {
         </Grid>
       </Box>
     </>
+      </div>
+
+    
 
   )
 }

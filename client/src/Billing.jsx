@@ -7,8 +7,10 @@ import SortableTable from './components/SortableTable'
 import { BarChart } from '@mui/x-charts/BarChart';
 import dayjs from "dayjs";
 import axios from 'axios';
+import LoadingOverlay from './components/LoadingOverlay'
 
 function Billing() {
+  const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
   const [startDate, setStartDate] = useState(oneYearAgo);
@@ -36,6 +38,8 @@ function Billing() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+
         const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
           start_date: startDate,
           end_date: endDate
@@ -47,12 +51,18 @@ function Billing() {
       catch (error) {
         console.log(error.message)
       }
+      finally {
+        setIsLoading(false); // Ensure this is executed even if there's an error
+      }  
     }
     fetchData();
   }, [startDate, endDate])
 
   return (
-    <>
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={'Billing'}></Sidebar>
       <Box sx={{
         display: 'flex',
@@ -165,7 +175,7 @@ function Billing() {
         </Grid>
       </Box>
     </>
-
+      </div>
   )
 }
 

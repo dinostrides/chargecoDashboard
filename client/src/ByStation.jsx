@@ -23,8 +23,10 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { LineChart } from "@mui/x-charts/LineChart";
 import stations from "./datasets/stations.json";
 import axios from "axios";
+import LoadingOverlay from "./components/LoadingOverlay";
 
 function ByStation() {
+  const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, "year");
   const [startDate, setStartDate] = useState(oneYearAgo);
@@ -65,6 +67,8 @@ function ByStation() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+
         const byStationCards = await axios.post(
           "http://localhost:8000/byStationCards/",
           {
@@ -91,15 +95,15 @@ function ByStation() {
 
         setByStationHour(byStationHour.data.station_hour);
 
-        const byStationMonth = await axios.post(
-          "http://localhost:8000/byStationTimeSeriesChart/",
-          {
-            start_date: startDate,
-            end_date: endDate,
-            location: location,
-            power_type: powerType,
-          }
-        );
+        // const byStationMonth = await axios.post(
+        //   "http://localhost:8000/byStationTimeSeriesChart/",
+        //   {
+        //     start_date: startDate,
+        //     end_date: endDate,
+        //     location: location,
+        //     power_type: powerType,
+        //   }
+        // );
 
         //console.log(byStationMonth.data) // current returns location number but line chart requires month as x axis, data shld be month, number
         //have not updated line chart data yet
@@ -125,12 +129,18 @@ function ByStation() {
       } catch (error) {
         console.log(error.message);
       }
+      finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
   }, [startDate, endDate, location, powerType]);
 
   return (
-    <>
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={"ByStation"} />
       <Box
         sx={{
@@ -288,11 +298,21 @@ function ByStation() {
                   label: "Hour of Day",
                 },
               ]}
+              yAxis={[
+                {
+                  label: "Average Utilisation (%)",
+                },
+              ]}
             />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <LineChart
-              xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+              xAxis={[{ data: [1, 2, 3, 5, 8, 10], label: 'Month' }]}
+              yAxis={[
+                {
+                  label: "Average Utilisation (%)",
+                },
+              ]}
               series={[
                 {
                   data: [2, 5.5, 2, 8.5, 1.5, 5],
@@ -314,7 +334,6 @@ function ByStation() {
                 {
                   data: ["Day", "Night"],
                   scaleType: "band",
-                  label: "Average Utilisation By Day / Night",
                 },
               ]}
               height={500}
@@ -333,7 +352,6 @@ function ByStation() {
                 {
                   data: ["Day", "Night"],
                   scaleType: "band",
-                  label: 'Average Utilisation By Weekday / Weekend'
                 },
               ]}
               height={500}
@@ -342,6 +360,8 @@ function ByStation() {
         </Grid>
       </Box>
     </>
+      </div>
+    
   );
 }
 

@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import datetime
 import random
-import re
 import json
 import plotly.express as px
 import plotly.io as pio
@@ -809,7 +808,7 @@ def payment_mode_donut_chart_json(charging_transactions, start_date=min_date, en
     payment_type_count = charging_transactions['Payment By'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = payment_type_count.to_dict(orient='records')
+    data_points = payment_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
