@@ -21,6 +21,7 @@ function Pricing() {
   const [powerType, setPowerType] = useState("All");
 
   const [avgPrice, setAvgPrice] = useState();
+  const [pieChartData, setPieChartData] = useState();
 
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
@@ -43,8 +44,7 @@ function Pricing() {
           power_type: powerType
         })
 
-        console.log(pricingPaymentModeChart)
-
+        setPieChartData(pricingPaymentModeChart.data.payment_mode_donut);
 
       }
       catch (error) {
@@ -125,15 +125,19 @@ function Pricing() {
             <PieChart
               series={[
                 {
-                  data: [
-                    { id: 0, value: 10, label: 'series A' },
-                    { id: 1, value: 15, label: 'series B' },
-                    { id: 2, value: 20, label: 'series C' },
-                  ],
+                  data: pieChartData
+                    ? Object.entries(pieChartData).map(([label, value], id) => ({
+                      id,
+                      value,
+                      label,
+                    }))
+                    : [],
                 },
               ]}
               height={420}
             />
+
+
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <ScatterChart

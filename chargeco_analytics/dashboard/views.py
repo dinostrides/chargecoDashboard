@@ -621,11 +621,12 @@ def pricingPaymentModeChart(request):
     # inactive_chargers = data_loader.load_inactive_chargers()
 
     # Payment mode data points
-    payment_mode_donut = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+    payment_mode_donut_str = charts_generator.payment_mode_donut_chart_json(charging_transactions)
+    payment_mode_donut = json.loads(payment_mode_donut_str)
 
     response = {
         'payment_mode_donut': payment_mode_donut
-    }    
+    }
 
     return JsonResponse(response, safe=False)
 
