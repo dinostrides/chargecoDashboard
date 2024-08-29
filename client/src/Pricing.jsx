@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar'
 import { Box, Typography, Grid, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -11,6 +11,7 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { scatterdata } from './datasets/scatterdata.jsx';
 import PricingCard from './components/cards/PricingCard.jsx';
+import axios from 'axios';
 
 function Pricing() {
   const today = dayjs();
@@ -19,9 +20,39 @@ function Pricing() {
   const [endDate, setEndDate] = useState(today);
   const [powerType, setPowerType] = useState("All");
 
+  const [avgPrice, setAvgPrice] = useState();
+
   const handlePowerTypeChange = (event) => {
     setPowerType(event.target.value);
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const pricingCards = await axios.post('http://localhost:8000/pricingCards/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        setAvgPrice(pricingCards.data.avg_price)
+
+        const pricingPaymentModeChart = await axios.post('http://localhost:8000/pricingPaymentModeChart/', {
+          start_date: startDate,
+          end_date: endDate,
+          power_type: powerType
+        })
+
+        console.log(pricingPaymentModeChart)
+
+
+      }
+      catch (error) {
+        console.log(error.message)
+      }
+    }
+    fetchData();
+  }, [startDate, endDate, powerType])
 
   return (
     <>
@@ -85,7 +116,7 @@ function Pricing() {
                       <MenuItem value={"DC"}>DC</MenuItem>
                     </Select>
                   </FormControl>
-                  <PricingCard number={"$0.58/kWh"} text={"Average Rate After Discount"}></PricingCard>
+                  <PricingCard number={avgPrice} text={"Average Rate After Discount"}></PricingCard>
                 </Stack>
               </Grid>
             </Grid>

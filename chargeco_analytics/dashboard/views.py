@@ -590,7 +590,7 @@ def pricingCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    power_type = data.get("power_type")
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
