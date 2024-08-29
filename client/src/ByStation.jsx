@@ -23,8 +23,10 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { LineChart } from "@mui/x-charts/LineChart";
 import stations from "./datasets/stations.json";
 import axios from "axios";
+import LoadingOverlay from "./components/LoadingOverlay";
 
 function ByStation() {
+  const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, "year");
   const [startDate, setStartDate] = useState(oneYearAgo);
@@ -65,6 +67,8 @@ function ByStation() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+
         const byStationCards = await axios.post(
           "http://localhost:8000/byStationCards/",
           {
@@ -125,12 +129,18 @@ function ByStation() {
       } catch (error) {
         console.log(error.message);
       }
+      finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
   }, [startDate, endDate, location, powerType]);
 
   return (
-    <>
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={"ByStation"} />
       <Box
         sx={{
@@ -350,6 +360,8 @@ function ByStation() {
         </Grid>
       </Box>
     </>
+      </div>
+    
   );
 }
 

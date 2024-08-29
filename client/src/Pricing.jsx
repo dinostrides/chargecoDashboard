@@ -11,8 +11,10 @@ import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import PricingCard from './components/cards/PricingCard.jsx';
 import axios from 'axios';
+import LoadingOverlay from './components/LoadingOverlay.jsx';
 
 function Pricing() {
+  const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
   const [startDate, setStartDate] = useState(oneYearAgo);
@@ -30,6 +32,7 @@ function Pricing() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const pricingCards = await axios.post('http://localhost:8000/pricingCards/', {
           start_date: startDate,
           end_date: endDate,
@@ -58,12 +61,18 @@ function Pricing() {
       catch (error) {
         console.log(error.message)
       }
+      finally {
+        setIsLoading(false);
+      }
     }
     fetchData();
   }, [startDate, endDate, powerType])
 
   return (
-    <>
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={'Pricing'}></Sidebar>
       <Box sx={{
         display: 'flex',
@@ -183,6 +192,9 @@ function Pricing() {
         </Grid>
       </Box>
     </>
+      </div>
+
+    
 
   )
 }

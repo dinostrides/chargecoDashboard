@@ -25,8 +25,6 @@ import SortableTable from './components/SortableTable'
 import axios from 'axios';
 import LoadingOverlay from "./components/LoadingOverlay";
 
-
-
 function Overview() {
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
