@@ -91,15 +91,15 @@ function ByStation() {
 
         setByStationHour(byStationHour.data.station_hour);
 
-        const byStationMonth = await axios.post(
-          "http://localhost:8000/byStationTimeSeriesChart/",
-          {
-            start_date: startDate,
-            end_date: endDate,
-            location: location,
-            power_type: powerType,
-          }
-        );
+        // const byStationMonth = await axios.post(
+        //   "http://localhost:8000/byStationTimeSeriesChart/",
+        //   {
+        //     start_date: startDate,
+        //     end_date: endDate,
+        //     location: location,
+        //     power_type: powerType,
+        //   }
+        // );
 
         //console.log(byStationMonth.data) // current returns location number but line chart requires month as x axis, data shld be month, number
         //have not updated line chart data yet
