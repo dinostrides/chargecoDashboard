@@ -297,7 +297,6 @@ function Utilisation() {
                             {
                               data: ["Day", "Night"],
                               scaleType: "band",
-                              label: 'Average Utilisation By Day / Night'
                             },
                           ]}
                         />
@@ -331,7 +330,6 @@ function Utilisation() {
                             {
                               data: ["Weekday", "Weekend"],
                               scaleType: "band",
-                              label: 'Average Utilisation By Weekday / Weekend'
                             },
                           ]}
                         />

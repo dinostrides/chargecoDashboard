@@ -288,11 +288,21 @@ function ByStation() {
                   label: "Hour of Day",
                 },
               ]}
+              yAxis={[
+                {
+                  label: "Average Utilisation (%)",
+                },
+              ]}
             />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <LineChart
-              xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+              xAxis={[{ data: [1, 2, 3, 5, 8, 10], label: 'Month' }]}
+              yAxis={[
+                {
+                  label: "Average Utilisation (%)",
+                },
+              ]}
               series={[
                 {
                   data: [2, 5.5, 2, 8.5, 1.5, 5],
@@ -314,7 +324,6 @@ function ByStation() {
                 {
                   data: ["Day", "Night"],
                   scaleType: "band",
-                  label: "Average Utilisation By Day / Night",
                 },
               ]}
               height={500}
@@ -333,7 +342,6 @@ function ByStation() {
                 {
                   data: ["Day", "Night"],
                   scaleType: "band",
-                  label: 'Average Utilisation By Weekday / Weekend'
                 },
               ]}
               height={500}

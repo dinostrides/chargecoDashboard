@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { PieChart } from '@mui/x-charts/PieChart';
+import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import PricingCard from './components/cards/PricingCard.jsx';
 import axios from 'axios';
@@ -130,30 +130,48 @@ function Pricing() {
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={6} marginTop={'20px'}>
-            <PieChart
-              series={[
-                {
-                  data: pieChartData
-                    ? Object.entries(pieChartData).map(([label, value], id) => ({
-                      id,
-                      value,
-                      label,
-                    }))
-                    : [],
-                },
-              ]}
-              height={420}
-            />
-
+          <PieChart
+      series={[
+        {
+          arcLabel: (item) => `${item.label} (${item.value})`,
+          arcLabelMinAngle: 45,
+          data: pieChartData
+            ? Object.entries(pieChartData).map(([label, value], id) => ({
+                id,
+                value,
+                label,
+              }))
+            : [],
+        },
+      ]}
+      sx={{
+        [`& .${pieArcLabelClasses.root}`]: {
+          fill: 'white',
+          fontWeight: 'bold',
+        },
+      }}
+      height={420}
+    />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <ScatterChart
               height={700}
+              grid={{ vertical: true, horizontal: true }}
+              xAxis={[
+                {
+                  label: "Utilisation Rate (%)",
+                },
+              ]}
+              yAxis={[
+                {
+                  label: "Average Rate ($)",
+                },
+              ]}
               series={[
                 {
                   data: pricingRateUtilisationChart
                     ? pricingRateUtilisationChart.map((v) => ({
-                        x: v['Utilisation Rate'],
+                        x: v['Utilisation Rate'] * 100,
                         y: v['Rate'],
                         id: v['Charger ID'],
                       }))
