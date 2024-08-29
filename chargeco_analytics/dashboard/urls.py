@@ -12,4 +12,10 @@ urlpatterns = [
     path('utilisationUtilChart/', views.utilisationUtilChart),
     path('utilisationBarChart/', views.utilisationBarChart),
     path('byStationCards/', views.byStationCards),
+    path('byStationHour/', views.byStationHour),
+    path('byStationTimeSeriesChart/', views.byStationTimeSeriesChart),
+    path('byStationUtilBarChart/', views.byStationUtilBarChart),
+    path('pricingCards/', views.pricingCards),
+    path('pricingPaymentModeChart/', views.pricingPaymentModeChart),
+    path('pricingUtilisationPriceChart/', views.pricingUtilisationPriceChart),
 ]

@@ -24,9 +24,11 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
 import axios from 'axios';
 import addresses from "./datasets/utilisationAddresses.json";
+import LoadingOverlay from './components/LoadingOverlay';
 
 
 function Utilisation() {
+  const [isLoading, setIsLoading] = useState(true);
 
   const [address, setAddress] = useState("All");
   const [charger, setCharger] = useState("All");
@@ -60,6 +62,7 @@ function Utilisation() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const utilisationLeftCards = await axios.post("http://localhost:8000/utilisationLeftCards/", {
           start_date: startDate,
           end_date: endDate,
@@ -104,13 +107,20 @@ function Utilisation() {
       catch (error) {
         console.log(error.message)
       }
+      finally {
+        setIsLoading(false);
+      }
     }
     fetchData();
     console.log(startDate.$d, endDate.$d)
   }, [startDate, endDate])
 
   return (
-    <>
+
+
+    <div style={{ position: 'relative' }}>
+      {isLoading && <LoadingOverlay />}
+      <>
       <Sidebar tab={'Utilisation'}></Sidebar>
       <Box sx={{
         display: 'flex',
@@ -239,11 +249,12 @@ function Utilisation() {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={avgMinPerAcSession} text={"Avg. Minutes/AC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerAcSession !== undefined ? avgMinPerAcSession.toFixed(2) : ''} text={"Avg. Minutes/AC Session"} />
               </Grid>
 
+
               <Grid item xs={12} md={6}>
-                <UtilisationCard number={avgMinPerDcSession} text={"Avg. Minutes/DC Session"}></UtilisationCard>
+                <UtilisationCard number={avgMinPerDcSession !== undefined ? avgMinPerDcSession.toFixed(2) : ''} text={"Avg. Minutes/DC Session"}></UtilisationCard>
               </Grid>
             </Grid>
           </Grid>
@@ -296,7 +307,6 @@ function Utilisation() {
                             {
                               data: ["Day", "Night"],
                               scaleType: "band",
-                              label: 'Average Utilisation By Day / Night'
                             },
                           ]}
                         />
@@ -330,7 +340,6 @@ function Utilisation() {
                             {
                               data: ["Weekday", "Weekend"],
                               scaleType: "band",
-                              label: 'Average Utilisation By Weekday / Weekend'
                             },
                           ]}
                         />
@@ -344,6 +353,9 @@ function Utilisation() {
         </Grid>
       </Box>
     </>
+
+      </div>
+    
   )
 }
 

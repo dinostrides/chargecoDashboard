@@ -52,7 +52,7 @@ function SortableTable({ height, data }) {
             {sortedRows.map((row) => (
               <TableRow key={row.chargerId} sx={{ backgroundColor: row.chargerId % 2 === 0 ? 'white' : '#f7f5f5' }}>
                 <TableCell>{row.chargerId}</TableCell>
-                <TableCell>{row.utilizationRate}</TableCell>
+                <TableCell>{row.utilizationRate.toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
