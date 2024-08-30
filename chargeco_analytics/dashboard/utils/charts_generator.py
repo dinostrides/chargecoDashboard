@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import random
+import re
 import json
 import plotly.express as px
 import plotly.io as pio
@@ -629,59 +630,18 @@ def energy_expenditure_table(monthly_charging):
     grouped_data = grouped_data.sort_values(by='total_energy', ascending=False)
     return grouped_data
 
-# Monthly Energy Consumption Chart
-def monthly_energy_consumption_chart(monthly_charging):
-    aggregated_data = monthly_charging.groupby(['evse_id', 'month'])['total_energy'].sum().reset_index()
-    pivot_df = aggregated_data.pivot(index='month', columns='evse_id', values='total_energy').reset_index()
-    pivot_df['month'] = pd.to_datetime(pivot_df['month'], format='%Y-%m')
+# Energy Expenditure Table to JSON
+def energy_expenditure_table_json(monthly_charging):
+    grouped_data = monthly_charging.groupby('evse_id').agg(total_energy=('total_energy', 'sum'), total_cost=('total_cost', 'sum')).reset_index()
+    grouped_data = grouped_data.sort_values(by='total_energy', ascending=False)
 
-    min_month = pivot_df['month'].min().strftime('%b %Y')
-    max_month = pivot_df['month'].max().strftime('%b %Y')
-    title_text = f"Monthly Energy Consumption across Chargers<br>({min_month} - {max_month})"
-    colors = ['#' + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(len(pivot_df.columns) - 1)]
+    # Convert data points to a list of dictionaries
+    data_points = grouped_data.to_dict(orient='records')
 
-    fig = px.line(pivot_df, x='month', y=pivot_df.columns[1:], title=title_text)
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
 
-    for i, line in enumerate(fig.data):
-        fig.data[i].update(line=dict(color=colors[i]))
-
-    default_height = 355
-    height = fig.layout.height if fig.layout.height is not None else default_height
-    fig.update_layout(
-        title=dict(
-            text=title_text,
-            x=0.5,
-            y=0.95,
-            xanchor='center',
-            font=dict(color='white'),
-        ),
-        xaxis=dict(
-            title='Month',
-            title_font=dict(color='white'),
-            tickfont=dict(color='white'),
-            gridcolor='rgba(255,255,255,0)',
-            linecolor='white',
-            tickcolor='white',
-            dtick="M2",
-            tickformat="%b %Y"
-        ),
-        yaxis=dict(
-            title='Energy Consumption (kWh)',
-            title_font=dict(color='white'),
-            tickfont=dict(color='white'),
-            gridcolor='rgba(255,255,255,0)',
-            linecolor='white',
-            tickcolor='white'
-        ),
-        showlegend=False,
-        height=height,
-        paper_bgcolor='#363a41',
-        plot_bgcolor='#363a41',
-        margin=dict(r=20)
-    )
-    fig.update_xaxes(title_text='')
-
-    return fig
+    return data_json
 
 # Total Energy Cost Chart
 def total_energy_cost_chart(monthly_charging):
@@ -757,6 +717,89 @@ def total_energy_cost_chart(monthly_charging):
 
     return fig
 
+# Total Energy Cost Chart to JSON
+def total_energy_cost_chart_json(monthly_charging):
+    aggregated_data = monthly_charging.groupby(['month']).agg({'total_energy': 'sum', 'total_cost': 'sum'}).reset_index()
+    aggregated_data['month'] = pd.to_datetime(aggregated_data['month'], format='%Y-%m')
+    # min_month = aggregated_data['month'].min().strftime('%b %Y')
+    # max_month = aggregated_data['month'].max().strftime('%b %Y')
+
+    # Convert data points to a list of dictionaries
+    data_points = aggregated_data.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
+# Monthly Energy Consumption Chart
+def monthly_energy_consumption_chart(monthly_charging):
+    aggregated_data = monthly_charging.groupby(['evse_id', 'month'])['total_energy'].sum().reset_index()
+    pivot_df = aggregated_data.pivot(index='month', columns='evse_id', values='total_energy').reset_index()
+    pivot_df['month'] = pd.to_datetime(pivot_df['month'], format='%Y-%m')
+
+    min_month = pivot_df['month'].min().strftime('%b %Y')
+    max_month = pivot_df['month'].max().strftime('%b %Y')
+    title_text = f"Monthly Energy Consumption across Chargers<br>({min_month} - {max_month})"
+    colors = ['#' + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(len(pivot_df.columns) - 1)]
+
+    fig = px.line(pivot_df, x='month', y=pivot_df.columns[1:], title=title_text)
+
+    for i, line in enumerate(fig.data):
+        fig.data[i].update(line=dict(color=colors[i]))
+
+    default_height = 355
+    height = fig.layout.height if fig.layout.height is not None else default_height
+    fig.update_layout(
+        title=dict(
+            text=title_text,
+            x=0.5,
+            y=0.95,
+            xanchor='center',
+            font=dict(color='white'),
+        ),
+        xaxis=dict(
+            title='Month',
+            title_font=dict(color='white'),
+            tickfont=dict(color='white'),
+            gridcolor='rgba(255,255,255,0)',
+            linecolor='white',
+            tickcolor='white',
+            dtick="M2",
+            tickformat="%b %Y"
+        ),
+        yaxis=dict(
+            title='Energy Consumption (kWh)',
+            title_font=dict(color='white'),
+            tickfont=dict(color='white'),
+            gridcolor='rgba(255,255,255,0)',
+            linecolor='white',
+            tickcolor='white'
+        ),
+        showlegend=False,
+        height=height,
+        paper_bgcolor='#363a41',
+        plot_bgcolor='#363a41',
+        margin=dict(r=20)
+    )
+    fig.update_xaxes(title_text='')
+
+    return fig
+
+# Monthly Energy Consumption Chart
+def monthly_energy_consumption_chart_json(monthly_charging):
+    aggregated_data = monthly_charging.groupby(['evse_id', 'month'])['total_energy'].sum().reset_index()
+    pivot_df = aggregated_data.pivot(index='month', columns='evse_id', values='total_energy').reset_index()
+    pivot_df['month'] = pd.to_datetime(pivot_df['month'], format='%Y-%m')
+
+    # Convert data points to a list of dictionaries
+    data_points = pivot_df.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
 ###########################################################
 ######################### PRICING #########################
 ###########################################################
@@ -808,7 +851,7 @@ def payment_mode_donut_chart_json(charging_transactions, start_date=min_date, en
     payment_type_count = charging_transactions['Payment By'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = payment_type_count.to_dict()
+    data_points = payment_type_count.to_dict(orient='records')
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -918,6 +961,18 @@ def user_donut_chart(charging_transactions):
 
     return fig
 
+# User Donut Chart to JSON
+def user_donut_chart_json(charging_transactions):
+    user_type_count = charging_transactions['User Type Cleaned'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = user_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
 # Fleet Donut Chart
 def fleet_donut_chart(charging_transactions):
     charging_transactions = charging_transactions[charging_transactions['User Type Cleaned'] == 'Fleet']
@@ -961,6 +1016,19 @@ def fleet_donut_chart(charging_transactions):
                        x=0.5, y=0.5, showarrow=False, font=dict(size=12), align="center")
 
     return fig
+
+# Fleet Donut Chart to JSON
+def fleet_donut_chart_json(charging_transactions):
+    charging_transactions = charging_transactions[charging_transactions['User Type Cleaned'] == 'Fleet']
+    group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = group_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
 
 # Member Donut Chart
 def member_donut_chart(charging_transactions):
@@ -1012,6 +1080,19 @@ def member_donut_chart(charging_transactions):
 
     return fig
 
+# Member Donut Chart to JSON
+def member_donut_chart_json(charging_transactions):
+    charging_transactions = charging_transactions[charging_transactions['User Type Cleaned'] == 'Member']
+    group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = group_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
 # Partner Donut Chart
 def partner_donut_chart(charging_transactions):
     charging_transactions = charging_transactions[charging_transactions['User Type Cleaned'] == 'Partner']
@@ -1054,6 +1135,19 @@ def partner_donut_chart(charging_transactions):
 
     return fig
 
+# Partner Donut Chart to JSON
+def partner_donut_chart_json(charging_transactions):
+    charging_transactions = charging_transactions[charging_transactions['User Type Cleaned'] == 'Partner']
+    group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
+
+    # Convert data points to a list of dictionaries
+    data_points = group_type_count.to_dict(orient='records')
+
+    # Convert to JSON format
+    data_json = json.dumps(data_points)
+
+    return data_json
+
 # User Across Time Chart
 def user_across_time(charging_transactions):
     charging_transactions = charging_transactions.drop_duplicates(subset=['User ID', 'Month'])
@@ -1091,6 +1185,22 @@ def user_across_time(charging_transactions):
     )
 
     return fig
+
+# User Across Time Chart to JSON
+def user_across_time_json(charging_transactions):
+    # Remove duplicate entries based on 'User ID' and 'Month'
+    charging_transactions = charging_transactions.drop_duplicates(subset=['User ID', 'Month'])
+
+    # Group by 'Month' and 'User Type Cleaned', then count the occurrences
+    grouped_data = charging_transactions.groupby(['Month', 'User Type Cleaned']).size().reset_index(name='Count')
+
+    # Pivot the DataFrame to have 'Month' as index and 'User Type Cleaned' as columns, filling NaN with 0
+    pivot_df = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0).reset_index()
+
+    # Convert to JSON format
+    data_json = pivot_df.to_json(orient='records')
+
+    return data_json
 
 ###########################################################
 ################### OPERATOR (UNUSED) #####################
