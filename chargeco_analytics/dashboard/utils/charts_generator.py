@@ -976,7 +976,7 @@ def user_donut_chart_json(charging_transactions):
     user_type_count = charging_transactions['User Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = user_type_count.to_dict(orient='records')
+    data_points = user_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1033,7 +1033,7 @@ def fleet_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1096,7 +1096,7 @@ def member_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1151,7 +1151,7 @@ def partner_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1208,7 +1208,7 @@ def user_across_time_json(charging_transactions):
     pivot_df = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0).reset_index()
 
     # Convert to JSON format
-    data_json = pivot_df.to_json(orient='records')
+    data_json = pivot_df.to_json()
 
     return data_json
 

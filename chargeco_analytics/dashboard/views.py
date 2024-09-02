@@ -794,11 +794,17 @@ def usersDonutCharts(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    user_donut = charts_generator.user_donut_chart_json(charging_transactions)
-    fleet_donut = charts_generator.fleet_donut_chart_json(charging_transactions)
-    member_donut = charts_generator.member_donut_chart_json(charging_transactions)
-    partner_donut = charts_generator.partner_donut_chart_json(charging_transactions)
-    user_across_time_chart = charts_generator.user_across_time_json(charging_transactions)
+    user_donut_str = charts_generator.user_donut_chart_json(charging_transactions)
+    fleet_donut_str = charts_generator.fleet_donut_chart_json(charging_transactions)
+    member_donut_str = charts_generator.member_donut_chart_json(charging_transactions)
+    partner_donut_str = charts_generator.partner_donut_chart_json(charging_transactions)
+    user_across_time_chart_str = charts_generator.user_across_time_json(charging_transactions)
+
+    user_donut = json.loads(user_donut_str)
+    fleet_donut = json.loads(fleet_donut_str)
+    member_donut = json.loads(member_donut_str)
+    partner_donut = json.loads(partner_donut_str)
+    user_across_time_chart = json.loads(user_across_time_chart_str)
 
     response = {
         'user_donut': user_donut,

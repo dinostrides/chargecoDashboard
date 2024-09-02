@@ -8,10 +8,11 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import UserCard from './components/cards/UserCard';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { LineChart } from '@mui/x-charts/LineChart';
 import addresses from "./datasets/utilisationAddresses.json";
 import LoadingOverlay from './components/LoadingOverlay';
+import axios, { all } from 'axios';
 
 function Users() {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,6 +20,10 @@ function Users() {
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
   const [address, setAddress] = useState("");
   const [charger, setCharger] = useState("");
+  const [pieChartDataUser, setPieChartDataUser] = useState();
+  const [pieChartDataFleet, setPieChartDataFleet] = useState();
+  const [pieChartDataMember, setPieChartDataMember] = useState();
+  const [pieChartDataPartner, setPieChartDataPartner] = useState();
 
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
@@ -32,6 +37,18 @@ function Users() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+
+        const allData = await axios.post("http://localhost:8000/usersDonutCharts/", {
+          start_date: startDate,
+          end_date: endDate,
+          address: address,
+          charger: charger
+        })
+
+        setPieChartDataUser(allData.data.user_donut)
+        setPieChartDataFleet(allData.data.fleet_donut)
+        setPieChartDataMember(allData.data.member_donut)
+        setPieChartDataPartner(allData.data.partner_donut)
       }
       catch (error) {
         console.log(error.message)
@@ -191,17 +208,27 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      data: [
-                        { id: 0, value: 10, label: 'series A' },
-                        { id: 1, value: 15, label: 'series B' },
-                        { id: 2, value: 20, label: 'series C' },
-                      ],
-                    },
-                  ]}
-                  height={420}
-                />
+                series={[
+                  {
+                    arcLabel: (item) => `${item.label} (${item.value})`,
+                    arcLabelMinAngle: 45,
+                    data: pieChartDataUser
+                      ? Object.entries(pieChartDataUser).map(([label, value], id) => ({
+                        id,
+                        value,
+                        label,
+                      }))
+                      : [],
+                  },
+                ]}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fill: 'white',
+                    fontWeight: 'bold',
+                  },
+                }}
+                height={420}
+              />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={6}>
@@ -214,17 +241,27 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      data: [
-                        { id: 0, value: 10, label: 'series A' },
-                        { id: 1, value: 15, label: 'series B' },
-                        { id: 2, value: 20, label: 'series C' },
-                      ],
-                    },
-                  ]}
-                  height={420}
-                />
+                series={[
+                  {
+                    arcLabel: (item) => `${item.label} (${item.value})`,
+                    arcLabelMinAngle: 45,
+                    data: pieChartDataFleet
+                      ? Object.entries(pieChartDataFleet).map(([label, value], id) => ({
+                        id,
+                        value,
+                        label,
+                      }))
+                      : [],
+                  },
+                ]}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fill: 'white',
+                    fontWeight: 'bold',
+                  },
+                }}
+                height={420}
+              />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={6}>
@@ -237,17 +274,27 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      data: [
-                        { id: 0, value: 10, label: 'series A' },
-                        { id: 1, value: 15, label: 'series B' },
-                        { id: 2, value: 20, label: 'series C' },
-                      ],
-                    },
-                  ]}
-                  height={420}
-                />
+                series={[
+                  {
+                    arcLabel: (item) => `${item.label} (${item.value})`,
+                    arcLabelMinAngle: 45,
+                    data: pieChartDataMember
+                      ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
+                        id,
+                        value,
+                        label,
+                      }))
+                      : [],
+                  },
+                ]}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fill: 'white',
+                    fontWeight: 'bold',
+                  },
+                }}
+                height={420}
+              />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={6}>
@@ -260,17 +307,27 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      data: [
-                        { id: 0, value: 10, label: 'series A' },
-                        { id: 1, value: 15, label: 'series B' },
-                        { id: 2, value: 20, label: 'series C' },
-                      ],
-                    },
-                  ]}
-                  height={420}
-                />
+                series={[
+                  {
+                    arcLabel: (item) => `${item.label} (${item.value})`,
+                    arcLabelMinAngle: 45,
+                    data: pieChartDataPartner
+                      ? Object.entries(pieChartDataPartner).map(([label, value], id) => ({
+                        id,
+                        value,
+                        label,
+                      }))
+                      : [],
+                  },
+                ]}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fill: 'white',
+                    fontWeight: 'bold',
+                  },
+                }}
+                height={420}
+              />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
