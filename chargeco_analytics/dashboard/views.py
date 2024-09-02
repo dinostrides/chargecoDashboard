@@ -579,20 +579,21 @@ def billingTable(request):
 @require_POST
 def billingRevenueChart(request):
     data = json.loads(request.body.decode('utf-8'))
-    powerType = data.get("power_type")
-    price = data.get("price")
-    charger = data.get("charger")
+    # powerType = data.get("power_type")
+    # price = data.get("price")
+    # charger = data.get("charger")
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
+    # charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    # inactive_chargers = data_loader.load_inactive_chargers()
 
-    total_energy_cost = charts_generator.total_energy_cost_chart_json(charger_charging)
+    total_energy_cost_str = charts_generator.total_energy_cost_chart_json(charger_charging)
+    total_energy_cost = json.loads(total_energy_cost_str)
     
     response = {
         'total_energy_cost': total_energy_cost
-    }    
+    }
 
     return JsonResponse(response, safe=False)
 

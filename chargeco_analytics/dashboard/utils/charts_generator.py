@@ -718,18 +718,20 @@ def total_energy_cost_chart(monthly_charging):
     return fig
 
 # Total Energy Cost Chart to JSON
+
 def total_energy_cost_chart_json(monthly_charging):
+    # Grouping and aggregating the data
     aggregated_data = monthly_charging.groupby(['month']).agg({'total_energy': 'sum', 'total_cost': 'sum'}).reset_index()
-    aggregated_data['month'] = pd.to_datetime(aggregated_data['month'], format='%Y-%m')
-    # min_month = aggregated_data['month'].min().strftime('%b %Y')
-    # max_month = aggregated_data['month'].max().strftime('%b %Y')
-
-    # Convert data points to a list of dictionaries
+    
+    # Convert the 'month' column to datetime and then to a string format
+    aggregated_data['month'] = pd.to_datetime(aggregated_data['month'], format='%Y-%m').dt.strftime('%Y-%m')
+    
+    # Convert DataFrame to a list of dictionaries
     data_points = aggregated_data.to_dict(orient='records')
-
+    
     # Convert to JSON format
     data_json = json.dumps(data_points)
-
+    
     return data_json
 
 # Monthly Energy Consumption Chart

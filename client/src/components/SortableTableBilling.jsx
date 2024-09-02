@@ -59,7 +59,7 @@ function SortableTableBilling({ height, data }) {
           </TableHead>
           <TableBody>
           {sortedRows.map((row) => (
-              <TableRow key={row.chargerId} sx={{ backgroundColor: row.chargerId % 2 === 0 ? 'white' : '#f7f5f5' }}>
+              <TableRow key={row.evse_id} sx={{ backgroundColor: row.chargerId % 2 === 0 ? 'white' : '#f7f5f5' }}>
                 <TableCell>{row.evse_id}</TableCell>
                 <TableCell>{row.total_energy.toFixed(2)}</TableCell>
                 <TableCell>{row.total_cost.toFixed(2)}</TableCell>

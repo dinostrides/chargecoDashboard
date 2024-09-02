@@ -10,6 +10,7 @@ import axios from 'axios';
 import LoadingOverlay from './components/LoadingOverlay'
 
 function Billing() {
+
   const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
@@ -19,6 +20,12 @@ function Billing() {
   const [powerType, setPowerType] = useState("All");
   const [price, setPrice] = useState("");
   const [charger, setCharger] = useState("");
+
+  const [billingRevenueChartData, setBillingRevenueChartData] = useState([])
+
+  const totalEnergies = billingRevenueChartData.map(data => data.total_energy);
+  const totalRevenue = billingRevenueChartData.map(data => data.total_cost);
+  const monthYear = billingRevenueChartData.map(data => data.month);
 
   // Table data
   const [tableData, setTableData] = useState([]);
@@ -41,12 +48,24 @@ function Billing() {
         setIsLoading(true);
 
         const tableResponse = await axios.post("http://localhost:8000/billingTable/", {
-          start_date: startDate,
-          end_date: endDate
+          power_type: powerType,
+          price: price,
+          charger: charger
         });
 
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr.energy_expenditure_df);
+
+        const billingRevenueChart = await axios.post("http://localhost:8000/billingRevenueChart/", {
+          power_type: powerType,
+          price: price,
+          charger: charger
+        });
+        
+        console.log(billingRevenueChart.data.total_energy_cost);
+        setBillingRevenueChartData(billingRevenueChart.data.total_energy_cost);
+
+        
       }
       catch (error) {
         console.log(error.message)
@@ -57,6 +76,8 @@ function Billing() {
     }
     fetchData();
   }, [startDate, endDate])
+
+  
 
   return (
 
@@ -143,17 +164,19 @@ function Billing() {
           <Grid item xs={12} md={12} lg={12}>
             <BarChart
               series={[
-                { data: [4, 2, 5, 4, 1], stack: 'A', label: 'Series A1' },
-                { data: [2, 8, 1, 3, 1], stack: 'A', label: 'Series A2' },
-                { data: [14, 6, 5, 8, 9], label: 'Series B1' },
+                { data: totalEnergies, label: 'Energy Consumption (kWh)' },
+                { data: totalRevenue, label: 'Revenue ($)' },
               ]}
-              barLabel={(item, context) => {
-                if ((item.value ?? 0) > 10) {
-                  return 'High';
-                }
-                return context.bar.height < 60 ? null : item.value?.toString();
+              xAxis={[
+                {
+                  data: monthYear,
+                  scaleType: "band",
+                },
+              ]}
+              height={750}
+              sx={{
+                padding: 2
               }}
-              height={550}
             />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
