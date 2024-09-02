@@ -566,7 +566,8 @@ def billingTable(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
 
-    energy_expenditure_df = charts_generator.energy_expenditure_table_json(charger_charging)
+    energy_expenditure_df_str = charts_generator.energy_expenditure_table_json(charger_charging)
+    energy_expenditure_df = json.loads(energy_expenditure_df_str)
     
     response = {
         'energy_expenditure_df': energy_expenditure_df

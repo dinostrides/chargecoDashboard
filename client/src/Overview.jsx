@@ -21,9 +21,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Legend from "./components/Legend";
 import LeafletMap from "./components/LeafletMap";
 import OverviewCard from "./components/cards/OverviewCard";
-import SortableTable from './components/SortableTable'
 import axios from 'axios';
 import LoadingOverlay from "./components/LoadingOverlay";
+import SortableTableOverview from "./components/SortableTableOverview";
 
 function Overview() {
   const today = dayjs();
@@ -178,7 +178,7 @@ function Overview() {
                 <Grid item md={12} lg={12} sx={{
                   marginTop: '30px'
                 }}>
-                  <SortableTable height={"600px"} data={tableData}></SortableTable>
+                  <SortableTableOverview height={"600px"} data={tableData}></SortableTableOverview>
                 </Grid>
               </Grid>
             </Grid>

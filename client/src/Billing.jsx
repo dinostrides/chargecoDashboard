@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import { Box, Typography, Grid, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import OverviewCard from './components/cards/OverviewCard'
-import SortableTable from './components/SortableTable'
+import SortableTableBilling from './components/SortableTableBilling'
 import { BarChart } from '@mui/x-charts/BarChart';
 import dayjs from "dayjs";
 import axios from 'axios';
@@ -40,13 +40,13 @@ function Billing() {
       try {
         setIsLoading(true);
 
-        const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
+        const tableResponse = await axios.post("http://localhost:8000/billingTable/", {
           start_date: startDate,
           end_date: endDate
         });
 
         const tableDataArr = tableResponse.data;
-        setTableData(tableDataArr);
+        setTableData(tableDataArr.energy_expenditure_df);
       }
       catch (error) {
         console.log(error.message)
@@ -138,7 +138,7 @@ function Billing() {
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={6}>
-            <SortableTable height={"400px"} data={tableData}/>
+            <SortableTableBilling height={"400px"} data={tableData}/>
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <BarChart
