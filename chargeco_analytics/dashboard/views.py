@@ -610,9 +610,10 @@ def billingEnergyChart(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
 
-    total_monthly_charger = charts_generator.monthly_energy_consumption_chart_json(charger_charging)
+    total_monthly_charger_str = charts_generator.monthly_energy_consumption_chart_json(charger_charging)
+    total_monthly_charger = json.loads(total_monthly_charger_str)
     
-    response = {
+    response = {    
         'total_monthly_charger': total_monthly_charger
     }    
 

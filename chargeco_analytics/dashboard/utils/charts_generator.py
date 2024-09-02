@@ -790,9 +790,17 @@ def monthly_energy_consumption_chart(monthly_charging):
 
 # Monthly Energy Consumption Chart
 def monthly_energy_consumption_chart_json(monthly_charging):
+    # Group by 'evse_id' and 'month', then aggregate total energy
     aggregated_data = monthly_charging.groupby(['evse_id', 'month'])['total_energy'].sum().reset_index()
+    
+    # Pivot the DataFrame
     pivot_df = aggregated_data.pivot(index='month', columns='evse_id', values='total_energy').reset_index()
+    
+    # Convert 'month' to datetime
     pivot_df['month'] = pd.to_datetime(pivot_df['month'], format='%Y-%m')
+
+    # Convert 'month' to string format for JSON serialization
+    pivot_df['month'] = pivot_df['month'].dt.strftime('%Y-%m')
 
     # Convert data points to a list of dictionaries
     data_points = pivot_df.to_dict(orient='records')
