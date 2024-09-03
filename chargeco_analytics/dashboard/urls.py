@@ -22,5 +22,6 @@ urlpatterns = [
     path('billingRevenueChart/', views.billingRevenueChart),
     path('billingEnergyChart/', views.billingEnergyChart),
     path('usersDonutCharts/', views.usersDonutCharts),
-    path('usersCards/', views.usersCards)
+    path('usersCards/', views.usersCards),
+    path('billingCards/', views.billingCards)
 ]

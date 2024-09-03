@@ -134,7 +134,7 @@ function Pricing() {
                         <MenuItem value={"DC"}>DC</MenuItem>
                       </Select>
                     </FormControl>
-                    <PricingCard number={avgPrice} text={"Average Rate After Discount"}></PricingCard>
+                    <PricingCard number={avgPrice} text={"Average Rate After Discount ($/kWh)"}></PricingCard>
                   </Stack>
                 </Grid>
               </Grid>

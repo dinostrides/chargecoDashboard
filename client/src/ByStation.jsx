@@ -209,13 +209,13 @@ function ByStation() {
               <Grid item xs={12} md={12} lg={4}>
                 <ByStationCard
                   number={avgPriceAfterDiscount}
-                  text={"Average Price After Discount"}
+                  text={"Average Price After Discount ($)"}
                 ></ByStationCard>
               </Grid>
               <Grid item xs={12} md={12} lg={4}>
                 <ByStationCard
                   number={avgUtilisationRate}
-                  text={"Average Utilisation Rate"}
+                  text={"Average Utilisation Rate (%)"}
                 ></ByStationCard>
               </Grid>
             </Grid>
@@ -282,6 +282,9 @@ function ByStation() {
             </Stack>
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
+          <div className="custom-y-padding-bottom">
+
+       
             <BarChart
               series={[
                 {
@@ -304,8 +307,11 @@ function ByStation() {
                 },
               ]}
             />
+               </div>
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
+            <div className="custom-y-padding-bottom">
+            
             <LineChart
               xAxis={[{ data: [1, 2, 3, 5, 8, 10], label: 'Month' }]}
               yAxis={[
@@ -320,6 +326,7 @@ function ByStation() {
               ]}
               height={500}
             />
+            </div>
           </Grid>
           <Grid item xs={12} md={12} lg={12} xl={6}>
             <BarChart

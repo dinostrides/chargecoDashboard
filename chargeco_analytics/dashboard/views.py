@@ -250,7 +250,7 @@ def utilisationUtilChart(request):
     charger = data.get("charger")
 
     # Load cached data if available
-    cache_key = "utilisation_chart_data"
+    cache_key = "utilisation_util_chart"
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
@@ -268,7 +268,7 @@ def utilisationUtilChart(request):
     }    
 
     # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=300)  # Cache for 5 minutes
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -281,6 +281,13 @@ def utilisationBarChart(request):
     endDate = data.get("end_date")
     address = data.get("address")
     charger = data.get("charger")
+
+    # Load cached data if available
+    cache_key = "utilisation_bar_chart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -297,6 +304,9 @@ def utilisationBarChart(request):
         'util_dayNight_data_json': util_dayNight_data_json,
         'util_weekdayWeekend_data_json':util_weekdayWeekend_data_json
     }    
+
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -364,6 +374,12 @@ def byStationHour(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
+     # Load cached data if available
+    cache_key = "by_station_hour"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -388,6 +404,9 @@ def byStationHour(request):
         'station_hour': station_hour
     }    
 
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
+
     return JsonResponse(response, safe=False)
 
 @csrf_exempt
@@ -398,6 +417,12 @@ def byStationUtilBarChart(request):
     endDate = data.get("end_date")
     location = data.get("location")
     powerType = data.get("power_type")
+
+     # Load cached data if available
+    cache_key = "bystation_util_barchart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -427,6 +452,8 @@ def byStationUtilBarChart(request):
         'util_weekdayWeekend': util_weekdayWeekend
     }    
 
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
     return JsonResponse(response, safe=False)
 
 @csrf_exempt
@@ -437,6 +464,12 @@ def byStationTimeSeriesChart(request):
     endDate = data.get("end_date")
     location = data.get("location")
     powerType = data.get("power_type")
+
+     # Load cached data if available
+    cache_key = "bstation_timeseries_chart"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -461,6 +494,9 @@ def byStationTimeSeriesChart(request):
     response = {
         'util_timeseries': util_timeseries
     }    
+
+     # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 

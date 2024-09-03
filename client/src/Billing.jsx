@@ -29,6 +29,9 @@ function Billing() {
   const totalRevenue = billingRevenueChartData.map(data => data.total_cost);
   const monthYear = billingRevenueChartData.map(data => data.month);
 
+  const [avgEnergyPerMonthCard, setAvgEnergyPerMonthCard] = useState();
+  const [avgCostPerMonthCard, setAvgCostPerMonthCard] = useState();
+
   // Table data
   const [tableData, setTableData] = useState([]);
 
@@ -49,6 +52,15 @@ function Billing() {
       try {
         setIsLoading(true);
 
+        const billingCards = await axios.post("http://localhost:8000/billingCards/", {
+          power_type: powerType,
+          price: price,
+          charger: charger
+        })
+
+        setAvgEnergyPerMonthCard(billingCards.data.average_energy_per_month)
+        setAvgCostPerMonthCard(billingCards.data.average_cost_per_month)
+        
         const tableResponse = await axios.post("http://localhost:8000/billingTable/", {
           power_type: powerType,
           price: price,
@@ -189,10 +201,10 @@ function Billing() {
                   </Stack>
                 </Grid>
                 <Grid item xs={12} md={6} lg={6}>
-                  <OverviewCard number={"41542 kWh"} text={"Average Monthly Energy Consumption"}></OverviewCard>
+                  <OverviewCard number={avgEnergyPerMonthCard} text={"Average Monthly Energy Consumption (kWh)"}></OverviewCard>
                 </Grid>
                 <Grid item xs={12} md={6} lg={6}>
-                  <OverviewCard number={"$24346.06"} text={"Average Monthly Revenue"}></OverviewCard>
+                  <OverviewCard number={avgCostPerMonthCard !== undefined ? avgCostPerMonthCard.toFixed(2) : ''} text={"Average Monthly Revenue ($)"}></OverviewCard>
                 </Grid>
               </Grid>
             </Grid>

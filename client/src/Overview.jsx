@@ -172,7 +172,7 @@ function Overview() {
                     <OverviewCard number={avgUniqueVehiclesPerLocation} text={"Average unique vehicles/location"}></OverviewCard>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={avgUtilisation} text={"Average utilization"}></OverviewCard>
+                    <OverviewCard number={avgUtilisation} text={"Average utilization (%)"}></OverviewCard>
                   </Grid>
                 </Grid>
                 <Grid item md={12} lg={12} sx={{
