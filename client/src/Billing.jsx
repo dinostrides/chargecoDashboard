@@ -6,6 +6,7 @@ import OverviewCard from './components/cards/OverviewCard'
 import SortableTableBilling from './components/SortableTableBilling'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
+import chargers from "./datasets/chargers.json";
 import dayjs from "dayjs";
 import axios from 'axios';
 import LoadingOverlay from './components/LoadingOverlay'
@@ -19,8 +20,8 @@ function Billing() {
   const [endDate, setEndDate] = useState(today);
 
   const [powerType, setPowerType] = useState("All");
-  const [price, setPrice] = useState("");
-  const [charger, setCharger] = useState("");
+  const [price, setPrice] = useState("All");
+  const [charger, setCharger] = useState("All");
 
   const [billingRevenueChartData, setBillingRevenueChartData] = useState([]);
   const [billingEnergyChartData, setBillingEnergyChartData] = useState([]);
@@ -179,9 +180,11 @@ function Billing() {
                         label="Price"
                         onChange={handlePriceChange}
                       >
-                        <MenuItem value={10}>All</MenuItem>
-                        <MenuItem value={20}>Option</MenuItem>
-                        <MenuItem value={30}>Option</MenuItem>
+                        <MenuItem value={"All"}>All</MenuItem>
+                        <MenuItem value={0.56}>0.56</MenuItem>
+                        <MenuItem value={0.5955}>0.5955</MenuItem>
+                        <MenuItem value={0.696}>0.696</MenuItem>
+                        
                       </Select>
                     </FormControl>
                     <FormControl fullWidth>
@@ -193,9 +196,11 @@ function Billing() {
                         label="Charger"
                         onChange={handleChargerChange}
                       >
-                        <MenuItem value={10}>All</MenuItem>
-                        <MenuItem value={20}>Option</MenuItem>
-                        <MenuItem value={30}>Option</MenuItem>
+                         {chargers.map((charger, index) => (
+                        <MenuItem key={index} value={charger}>
+                          {charger}
+                        </MenuItem>
+                      ))}
                       </Select>
                     </FormControl>
                   </Stack>

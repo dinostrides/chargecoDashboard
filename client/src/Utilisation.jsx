@@ -24,6 +24,7 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
 import axios from 'axios';
 import addresses from "./datasets/utilisationAddresses.json";
+import chargers from "./datasets/chargers.json";
 import LoadingOverlay from './components/LoadingOverlay';
 
 
@@ -112,7 +113,6 @@ function Utilisation() {
       }
     }
     fetchData();
-    console.log(startDate.$d, endDate.$d)
   }, [startDate, endDate])
 
   return (
@@ -200,10 +200,13 @@ function Utilisation() {
                       label="Charger"
                       onChange={handleChargerChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
-                    </Select>
+                      {chargers.map((charger, index) => (
+                        <MenuItem key={index} value={charger}>
+                          {charger}
+                        </MenuItem>
+                      ))}
+                 
+                   </Select>
                   </FormControl>
 
                 </Stack>

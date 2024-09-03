@@ -14,13 +14,14 @@ import addresses from "./datasets/utilisationAddresses.json";
 import LoadingOverlay from './components/LoadingOverlay';
 import axios, { all } from 'axios';
 import './lineGraph.css';
+import chargers from "./datasets/chargers.json";
 
 function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  const [address, setAddress] = useState("");
-  const [charger, setCharger] = useState("");
+  const [address, setAddress] = useState("All");
+  const [charger, setCharger] = useState("All");
   const [pieChartDataUser, setPieChartDataUser] = useState();
   const [pieChartDataFleet, setPieChartDataFleet] = useState();
   const [pieChartDataMember, setPieChartDataMember] = useState();
@@ -178,9 +179,11 @@ function Users() {
                       label="Charger"
                       onChange={handleChargerChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
+                  {chargers.map((charger, index) => (
+                        <MenuItem key={index} value={charger}>
+                          {charger}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Stack>
