@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 
-function SortableTable({ height, data }) {
+function SortableTableOverview({ height, data }) {
   const [orderDirection, setOrderDirection] = useState('asc');
   const [orderBy, setOrderBy] = useState('chargerId');
 
@@ -49,7 +49,7 @@ function SortableTable({ height, data }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedRows.map((row) => (
+          {sortedRows.map((row) => (
               <TableRow key={row.chargerId} sx={{ backgroundColor: row.chargerId % 2 === 0 ? 'white' : '#f7f5f5' }}>
                 <TableCell>{row.chargerId}</TableCell>
                 <TableCell>{row.utilizationRate.toFixed(2)}</TableCell>
@@ -62,4 +62,4 @@ function SortableTable({ height, data }) {
   );
 }
 
-export default SortableTable;
+export default SortableTableOverview;

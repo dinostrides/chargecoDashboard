@@ -718,18 +718,20 @@ def total_energy_cost_chart(monthly_charging):
     return fig
 
 # Total Energy Cost Chart to JSON
+
 def total_energy_cost_chart_json(monthly_charging):
+    # Grouping and aggregating the data
     aggregated_data = monthly_charging.groupby(['month']).agg({'total_energy': 'sum', 'total_cost': 'sum'}).reset_index()
-    aggregated_data['month'] = pd.to_datetime(aggregated_data['month'], format='%Y-%m')
-    # min_month = aggregated_data['month'].min().strftime('%b %Y')
-    # max_month = aggregated_data['month'].max().strftime('%b %Y')
-
-    # Convert data points to a list of dictionaries
+    
+    # Convert the 'month' column to datetime and then to a string format
+    aggregated_data['month'] = pd.to_datetime(aggregated_data['month'], format='%Y-%m').dt.strftime('%Y-%m')
+    
+    # Convert DataFrame to a list of dictionaries
     data_points = aggregated_data.to_dict(orient='records')
-
+    
     # Convert to JSON format
     data_json = json.dumps(data_points)
-
+    
     return data_json
 
 # Monthly Energy Consumption Chart
@@ -788,9 +790,17 @@ def monthly_energy_consumption_chart(monthly_charging):
 
 # Monthly Energy Consumption Chart
 def monthly_energy_consumption_chart_json(monthly_charging):
+    # Group by 'evse_id' and 'month', then aggregate total energy
     aggregated_data = monthly_charging.groupby(['evse_id', 'month'])['total_energy'].sum().reset_index()
+    
+    # Pivot the DataFrame
     pivot_df = aggregated_data.pivot(index='month', columns='evse_id', values='total_energy').reset_index()
+    
+    # Convert 'month' to datetime
     pivot_df['month'] = pd.to_datetime(pivot_df['month'], format='%Y-%m')
+
+    # Convert 'month' to string format for JSON serialization
+    pivot_df['month'] = pivot_df['month'].dt.strftime('%Y-%m')
 
     # Convert data points to a list of dictionaries
     data_points = pivot_df.to_dict(orient='records')
@@ -851,7 +861,7 @@ def payment_mode_donut_chart_json(charging_transactions, start_date=min_date, en
     payment_type_count = charging_transactions['Payment By'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = payment_type_count.to_dict(orient='records')
+    data_points = payment_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -966,7 +976,7 @@ def user_donut_chart_json(charging_transactions):
     user_type_count = charging_transactions['User Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = user_type_count.to_dict(orient='records')
+    data_points = user_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1023,7 +1033,7 @@ def fleet_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1086,7 +1096,7 @@ def member_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1141,7 +1151,7 @@ def partner_donut_chart_json(charging_transactions):
     group_type_count = charging_transactions['Group Type Cleaned'].value_counts()
 
     # Convert data points to a list of dictionaries
-    data_points = group_type_count.to_dict(orient='records')
+    data_points = group_type_count.to_dict()
 
     # Convert to JSON format
     data_json = json.dumps(data_points)
@@ -1198,7 +1208,7 @@ def user_across_time_json(charging_transactions):
     pivot_df = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0).reset_index()
 
     # Convert to JSON format
-    data_json = pivot_df.to_json(orient='records')
+    data_json = pivot_df.to_json()
 
     return data_json
 

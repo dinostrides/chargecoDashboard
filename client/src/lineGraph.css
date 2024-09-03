@@ -1,0 +1,6 @@
+.custom-y-padding-bottom .MuiChartsAxis-directionY .MuiChartsAxis-label {
+    transform: translateX(-10px) !important;
+  }
+
+
+/* PREVENTS Y AXIS LABEL FROM TOUCHING Y AXIS MARKERS */

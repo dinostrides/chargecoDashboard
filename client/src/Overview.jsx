@@ -21,9 +21,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Legend from "./components/Legend";
 import LeafletMap from "./components/LeafletMap";
 import OverviewCard from "./components/cards/OverviewCard";
-import SortableTable from './components/SortableTable'
 import axios from 'axios';
 import LoadingOverlay from "./components/LoadingOverlay";
+import SortableTableOverview from "./components/SortableTableOverview";
 
 function Overview() {
   const today = dayjs();
@@ -172,13 +172,13 @@ function Overview() {
                     <OverviewCard number={avgUniqueVehiclesPerLocation} text={"Average unique vehicles/location"}></OverviewCard>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6}>
-                    <OverviewCard number={avgUtilisation} text={"Average utilization"}></OverviewCard>
+                    <OverviewCard number={avgUtilisation} text={"Average utilization (%)"}></OverviewCard>
                   </Grid>
                 </Grid>
                 <Grid item md={12} lg={12} sx={{
                   marginTop: '30px'
                 }}>
-                  <SortableTable height={"600px"} data={tableData}></SortableTable>
+                  <SortableTableOverview height={"600px"} data={tableData}></SortableTableOverview>
                 </Grid>
               </Grid>
             </Grid>

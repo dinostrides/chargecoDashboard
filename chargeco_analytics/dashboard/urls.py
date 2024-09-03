@@ -18,4 +18,10 @@ urlpatterns = [
     path('pricingCards/', views.pricingCards),
     path('pricingPaymentModeChart/', views.pricingPaymentModeChart),
     path('pricingUtilisationPriceChart/', views.pricingUtilisationPriceChart),
+    path('billingTable/', views.billingTable),
+    path('billingRevenueChart/', views.billingRevenueChart),
+    path('billingEnergyChart/', views.billingEnergyChart),
+    path('usersDonutCharts/', views.usersDonutCharts),
+    path('usersCards/', views.usersCards),
+    path('billingCards/', views.billingCards)
 ]
