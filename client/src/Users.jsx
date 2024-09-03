@@ -30,6 +30,15 @@ function Users() {
   const [partnerOverTime, setPartnerOverTime] = useState([]);
   const [publicOverTime, setPublicOverTime] = useState([]);
 
+  //User cards
+  const [totalUsersCard, setTotalUsersCard] = useState();
+  const [publicCard, setPublicCard] = useState();
+  const [fleetCard, setFleetCard] = useState();
+  const [memberCard, setMemberCard] = useState();
+  const [partnerCard, setPartnerCard] = useState();
+
+
+
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -48,6 +57,21 @@ function Users() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+
+        const userCards = await axios.post("http://localhost:8000/usersCards/", {
+          start_date: startDate,
+          end_date: endDate,
+          address: address,
+          charger: charger
+        })
+
+        setTotalUsersCard(userCards.data.num_total)
+        setFleetCard(userCards.data.num_fleet)
+        setPublicCard(userCards.data.num_public)
+        setPartnerCard(userCards.data.num_partner)
+        setMemberCard(userCards.data.num_member)
+
+        
 
         const allData = await axios.post("http://localhost:8000/usersDonutCharts/", {
           start_date: startDate,
@@ -187,7 +211,7 @@ function Users() {
                           textAlign: "center"
                         }}
                       >
-                        3090
+                        {totalUsersCard}
                       </Typography>
                       <Typography
                         sx={{
@@ -201,17 +225,17 @@ function Users() {
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={12} md={6} lg={6}>
-                  <UserCard number={2432} text={"Public"}></UserCard>
+                  <UserCard number={publicCard} text={"Public"}></UserCard>
                 </Grid>
                 <Grid item xs={12} sm={12} md={6} lg={6}>
-                  <UserCard number={313} text={"Fleet"}></UserCard>
+                  <UserCard number={fleetCard} text={"Fleet"}></UserCard>
 
                 </Grid>
                 <Grid item xs={12} sm={12} md={6} lg={6}>
-                  <UserCard number={359} text={"Members"}></UserCard>
+                  <UserCard number={memberCard} text={"Members"}></UserCard>
                 </Grid>
                 <Grid item xs={12} sm={12} md={6} lg={6}>
-                  <UserCard number={1} text={"Partner"}></UserCard>
+                  <UserCard number={partnerCard} text={"Partner"}></UserCard>
                 </Grid>
               </Grid>
             </Grid>
