@@ -12,6 +12,7 @@ import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import PricingCard from './components/cards/PricingCard.jsx';
 import axios from 'axios';
 import LoadingOverlay from './components/LoadingOverlay.jsx';
+import './lineGraph.css'; 
 
 function Pricing() {
   const [isLoading, setIsLoading] = useState(true);
@@ -163,6 +164,7 @@ function Pricing() {
               />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
+            <div className="custom-y-padding-bottom"> 
               <ScatterChart
                 height={700}
                 grid={{ vertical: true, horizontal: true }}
@@ -188,6 +190,7 @@ function Pricing() {
                   },
                 ]}
               />
+              </div>
             </Grid>
           </Grid>
         </Box>

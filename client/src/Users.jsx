@@ -13,6 +13,7 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import addresses from "./datasets/utilisationAddresses.json";
 import LoadingOverlay from './components/LoadingOverlay';
 import axios, { all } from 'axios';
+import './lineGraph.css';
 
 function Users() {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +25,10 @@ function Users() {
   const [pieChartDataFleet, setPieChartDataFleet] = useState();
   const [pieChartDataMember, setPieChartDataMember] = useState();
   const [pieChartDataPartner, setPieChartDataPartner] = useState();
-  const [usersOverTime, setUsersOverTime] = useState();
+  const [fleetOverTime, setFleetOverTime] = useState([]);
+  const [memberOverTime, setMemberOverTime] = useState([]);
+  const [partnerOverTime, setPartnerOverTime] = useState([]);
+  const [publicOverTime, setPublicOverTime] = useState([]);
 
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
@@ -33,6 +37,12 @@ function Users() {
   const handleChargerChange = (event) => {
     setCharger(event.target.value);
   }
+  
+  const truncateLabel = (label, maxLength) => {
+    if (label.length <= maxLength) return label;
+    return label.slice(0, maxLength) + '...'; // Add ellipsis if truncating
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,8 +60,11 @@ function Users() {
         setPieChartDataFleet(allData.data.fleet_donut)
         setPieChartDataMember(allData.data.member_donut)
         setPieChartDataPartner(allData.data.partner_donut)
-        setUsersOverTime(allData.data.user_across_time_chart)
-        console.log(allData.data.user_across_time_chart)
+        setFleetOverTime(Object.values(allData.data.user_across_time_chart.Fleet))
+        setMemberOverTime(Object.values(allData.data.user_across_time_chart.Member))
+        setPartnerOverTime(Object.values(allData.data.user_across_time_chart.Partner))
+        setPublicOverTime(Object.values(allData.data.user_across_time_chart.Public))
+        
       }
       catch (error) {
         console.log(error.message)
@@ -61,6 +74,7 @@ function Users() {
       }
     }
     fetchData();
+    console.log(startDate.$d)
   }, [startDate, endDate, address, charger])
 
   return (
@@ -285,7 +299,7 @@ function Users() {
                         ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
                           id,
                           value,
-                          label,
+                          label: truncateLabel(label, 20),
                         }))
                         : [],
                     },
@@ -334,16 +348,19 @@ function Users() {
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <LineChart
-                xAxis={[{ data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] }]}
-                series={[
-                  {
-                    data: [2, 5.5, 2, 8.5, 1.5, 5],
-                  },
-                ]}
-                width={500}
-                height={300}
-              />
+            <div className="custom-y-padding-bottom">
+      <LineChart
+        xAxis={[{ data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] }]}
+        series={[
+          { data: fleetOverTime, label: "Fleet" },
+          { data: memberOverTime, label: "Member" },
+          { data: publicOverTime, label: "Public" },
+          { data: partnerOverTime, label: "Partner" }
+        ]}
+        yAxis={[{ label: "Number of users" }]}
+        height={800}
+      />
+    </div>
             </Grid>
           </Grid>
         </Box>
