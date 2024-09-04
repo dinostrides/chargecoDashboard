@@ -39,7 +39,16 @@ function Users() {
   const [partnerCard, setPartnerCard] = useState();
 
 
-
+  const formatLabel = (label, maxLength) => {
+    if (label.length <= maxLength) return label;
+  
+    // Calculate break points
+    const firstBreak = Math.ceil(label.length / 3)-1;
+    const secondBreak = Math.ceil((2 * label.length) / 3)-1;
+  
+    return `${label.slice(0, firstBreak)}\n${label.slice(firstBreak, secondBreak)}\n${label.slice(secondBreak)}`;
+  };
+  
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -318,27 +327,29 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      arcLabel: (item) => `${item.label} (${item.value})`,
-                      arcLabelMinAngle: 45,
-                      data: pieChartDataMember
-                        ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
-                          id,
-                          value,
-                          label: truncateLabel(label, 20),
-                        }))
-                        : [],
-                    },
-                  ]}
-                  sx={{
-                    [`& .${pieArcLabelClasses.root}`]: {
-                      fill: 'white',
-                      fontWeight: 'bold',
-                    },
-                  }}
-                  height={420}
-                />
+      series={[
+        {
+          arcLabel: (item) => `${formatLabel(item.label, 20)}\n(${item.value})`,
+          arcLabelMinAngle: 45,
+          data: pieChartDataMember
+            ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
+                id,
+                value,
+                label: formatLabel(label, 20),
+              }))
+            : [],
+        },
+      ]}
+      sx={{
+        [`& .${pieArcLabelClasses.root}`]: {
+          fill: 'white',
+          fontWeight: 'bold',
+          fontSize: '12px', // Adjust font size here
+          whiteSpace: 'pre-line', // Ensures that \n is treated as a line break
+        },
+      }}
+      height={420}
+    />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={6}>
