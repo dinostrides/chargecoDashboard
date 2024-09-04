@@ -328,9 +328,6 @@ def byStationCards(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
 
-    # Get unique site names for the dropdown filter
-    site_names = charging_transactions['Site Name'].unique()
-
     # Get the selected site name from location
     selected_site_name = location
 
@@ -385,11 +382,8 @@ def byStationHour(request):
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     # inactive_chargers = data_loader.load_inactive_chargers()
 
-    # Get unique site names for the dropdown filter
-    site_names = charging_transactions['Site Name'].unique()
-
-    # Get the selected site name from the GET parameters
-    selected_site_name = request.GET.get('site_name')
+    # Get the selected site name from location filter
+    selected_site_name = location
 
     # Filter the data based on the selected site name
     if selected_site_name:
@@ -405,6 +399,47 @@ def byStationHour(request):
     }    
 
     # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
+
+    return JsonResponse(response, safe=False)
+
+@csrf_exempt
+@require_POST
+def byStationTimeSeriesChart(request):
+    data = json.loads(request.body.decode('utf-8'))
+    startDate = data.get("start_date")
+    endDate = data.get("end_date")
+    location = data.get("location")
+    powerType = data.get("power_type")
+
+    # Load cached data if available
+    cache_key = "timeseries"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+
+    # Load data
+    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # # Get the selected site name from the GET parameters
+    selected_site_name = location
+
+    # Filter the data based on the selected site name
+    if selected_site_name:
+        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
+    else:
+        filtered_transactions = charging_transactions  # If no site is selected, show all data
+
+    util_timeseries_str = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
+    util_timeseries = json.loads(util_timeseries_str)
+    
+    response = {
+        'util_timeseries': util_timeseries
+    }    
+
+     # Cache the response data for future requests
     cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
@@ -433,7 +468,7 @@ def byStationUtilBarChart(request):
     site_names = charging_transactions['Site Name'].unique()
 
     # Get the selected site name from the GET parameters
-    selected_site_name = request.GET.get('site_name')
+    selected_site_name = location
 
     # Filter the data based on the selected site name
     if selected_site_name:
@@ -454,50 +489,6 @@ def byStationUtilBarChart(request):
 
     # Cache the response data for future requests
     cache.set(cache_key, response, timeout=3000)
-    return JsonResponse(response, safe=False)
-
-@csrf_exempt
-@require_POST
-def byStationTimeSeriesChart(request):
-    data = json.loads(request.body.decode('utf-8'))
-    startDate = data.get("start_date")
-    endDate = data.get("end_date")
-    location = data.get("location")
-    powerType = data.get("power_type")
-
-     # Load cached data if available
-    cache_key = "bstation_timeseries_chart"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
-    # Load data
-    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
-
-    # # Get unique site names for the dropdown filter
-    # site_names = charging_transactions['Site Name'].unique()
-
-    # # Get the selected site name from the GET parameters
-    # selected_site_name = request.GET.get('location')
-
-    # Filter the data based on the selected site name
-    if location:
-        filtered_transactions = charging_transactions[charging_transactions['Site Name'] == location]
-    else:
-        filtered_transactions = charging_transactions  # If no site is selected, show all data
-
-    util_timeseries_str = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
-    util_timeseries = json.loads(util_timeseries_str)
-    
-    response = {
-        'util_timeseries': util_timeseries
-    }    
-
-     # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
-
     return JsonResponse(response, safe=False)
 
 # @require_GET
