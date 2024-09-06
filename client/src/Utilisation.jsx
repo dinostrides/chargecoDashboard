@@ -274,7 +274,7 @@ function Utilisation() {
                     data: seriesData,
                     area: true,
                     label: "Average Utilisation Rate (%)",
-                    color: "pink"
+                    color: "#99c99e"
                   },
                 ]}
                 height={400}
@@ -304,7 +304,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: 'pink' },
+                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: '#99c99e' },
                           ]}
                           xAxis={[
                             {
@@ -337,7 +337,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: 'pink' },
+                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: '#99c99e' },
                           ]}
                           xAxis={[
                             {

@@ -290,7 +290,7 @@ function ByStation() {
                 {
                   data: seriesDataHour,
                   label: "Average Utilisation Per Hour(%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               height={700}
@@ -334,7 +334,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationDay, avgUtilisationNight],
                   label: "Average Utilisation (%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               xAxis={[
@@ -352,7 +352,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationWeekday, avgUtilisationWeekend],
                   label: "Average Utilisation (%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               xAxis={[
