@@ -191,7 +191,13 @@ function ByStation() {
                         component="span"
                         sx={{
                           fontWeight: "normal",
-                          fontSize: "25px",
+                          fontSize: {
+                            xs: "15px",
+                            sm: "15px",
+                            md: "20px",
+                            lg: "20px",
+                            xl: "25px"
+                          }
                         }}
                       >
                         {location === "" ? "None" : location}
