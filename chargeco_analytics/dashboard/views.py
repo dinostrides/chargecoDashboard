@@ -75,6 +75,24 @@ def overviewMap(request):
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
+    # Filtering on locationStatus and powerType filters
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == 'AC']
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == 'DC']
+
+    if locationStatus == "All":
+        charger_data = charger_data
+    elif locationStatus == "in_operation":
+        charger_data = charger_data[charger_data['In Operation'] == 'In Operation']
+    elif locationStatus == "coming_soon":
+        charger_data = charger_data[charger_data['In Operation'] == 'Coming Soon']
+    elif locationStatus == "no_charging_points":
+        charger_data = charger_data[pd.isna(charger_data['evCpId'])]
+    
+
     # Determine marker color based on conditions
     charger_data['marker_color'] = charger_data.apply(lambda row: 'red' if pd.isna(row['evCpId']) else 'Orange' if "Coming Soon" in str(row['name']) else 'Green', axis=1)
 
@@ -92,15 +110,29 @@ def overviewMap(request):
 @require_POST
 def overviewRightCards(request):
     data = json.loads(request.body.decode('utf-8'))
-    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
-    powerType = data.get("power_type") #either "all", "ac", "dc"
+    locationStatus = data.get("location_status") #either "All", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "All", "AC", "DC"
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    # charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+    
+    # Filtering on locationStatus and powerType filters
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
 
-    #todo: use locationStatus and powerType to filter results then return it below as response
+    if locationStatus == "All":
+        charger_data = charger_data
+    elif locationStatus == "in_operation":
+        charger_data = charger_data[charger_data['In Operation'] == "In Operation"]
+    elif locationStatus == "coming_soon":
+        charger_data = charger_data[charger_data['In Operation'] == "Coming Soon"]
+    elif locationStatus == "no_charging_points":
+        charger_data = charger_data[pd.isna(charger_data['evCpId'])]
+
     total_locations = str(len(charger_data['name'].unique()))
     total_active_points = str(len(charger_data['evCpId'].unique()))
 
@@ -119,10 +151,22 @@ def overviewLeftCards(request):
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate and endDate
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
 
     # Load charts/data for the page
     locations_utilised = str(len(charging_transactions['Site Name'].unique()))
@@ -136,7 +180,6 @@ def overviewLeftCards(request):
 
     charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
     avg_utilisation = str(round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation),1))
-
 
     response = {
         "locations_utilised": locations_utilised,
@@ -155,10 +198,22 @@ def overviewTable(request):
     startDate = data.get("start_date")
     endDate = data.get("end_date")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate and endDate
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
 
     # Use startDate and endDate to filter data, then return it below in response
     charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
