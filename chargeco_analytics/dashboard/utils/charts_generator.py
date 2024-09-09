@@ -551,46 +551,39 @@ def util_timeseries_chart(charging, height=462.5, start_date=min_date, end_date=
 
 # Utilisation Timeseries Chart to JSON
 def util_timeseries_chart_json(charging, height=462.5, start_date=min_date, end_date=max_date):
+    # Convert start and end times to datetime, drop rows with invalid dates
     charging['Start Date/Time'] = pd.to_datetime(charging['Start Date/Time'], errors='coerce')
     charging['End Date/Time'] = pd.to_datetime(charging['End Date/Time'], errors='coerce')
     charging = charging.dropna(subset=['Start Date/Time', 'End Date/Time'])
 
+    # Create a complete date and station ID range
     date_range = pd.date_range(start=start_date, end=end_date).date
     station_ids = charging['Station ID'].unique()
     all_combinations = pd.MultiIndex.from_product([date_range, station_ids], names=['Date', 'Station ID']).to_frame(index=False)
 
-    all_combinations['Date'] = pd.to_datetime(all_combinations['Date']).dt.date
+    # Merge with charging data
     charging['Date'] = pd.to_datetime(charging['Date']).dt.date
     merged_df = all_combinations.merge(charging, on=['Date', 'Station ID'], how='left').fillna({'totalDuration': 0, 'Site Name': ''})
 
-    expanded_rows = []
-    for idx, row in merged_df.iterrows():
-        start_time = row['Start Date/Time']
-        end_time = row['End Date/Time']
-        station_id = row['Station ID']
-        site_name = row['Site Name']
-        duration = row['totalDuration']
-        date = row['Date']
+    # Calculate the daily durations and expand records for multiple-day transactions
+    def expand_row(row):
+        start_time, end_time = row['Start Date/Time'], row['End Date/Time']
+        station_id, site_name, date, duration = row['Station ID'], row['Site Name'], row['Date'], row['totalDuration']
         
         if pd.isnull(start_time) or pd.isnull(end_time):
-            expanded_rows.append({
-                'Station ID': station_id,
-                'Site Name': site_name,
-                'Date': date,
-                'totalDuration': 0
-            })
-            continue
+            return [{'Station ID': station_id, 'Site Name': site_name, 'Date': date, 'totalDuration': 0}]
         
+        expanded_rows = []
         current_time = start_time
         while current_time.date() <= end_time.date():
-            if current_time.date() == end_time.date() and current_time.date() == start_time.date():
+            if current_time.date() == start_time.date() == end_time.date():
                 daily_duration = duration
             elif current_time.date() == start_time.date():
                 daily_duration = ((current_time.replace(hour=23, minute=59) - current_time).seconds + 60) / 60
             elif current_time.date() == end_time.date():
                 daily_duration = (end_time - end_time.replace(hour=0, minute=0)).seconds / 60
             else:
-                daily_duration = 24 * 60
+                daily_duration = 24 * 60  # Full day
 
             expanded_rows.append({
                 'Station ID': station_id,
@@ -599,24 +592,22 @@ def util_timeseries_chart_json(charging, height=462.5, start_date=min_date, end_
                 'totalDuration': daily_duration
             })
             current_time = current_time.replace(hour=0, minute=0) + datetime.timedelta(days=1)
+        
+        return expanded_rows
 
-    expanded_df = pd.DataFrame(expanded_rows)
-    expanded_df['Date'] = pd.to_datetime(expanded_df['Date'])
-    expanded_df['Month'] = expanded_df['Date'].dt.to_period('M').astype(str)
+    expanded_rows = [expand_row(row) for _, row in merged_df.iterrows()]
+    expanded_df = pd.DataFrame([item for sublist in expanded_rows for item in sublist])
 
+    # Group by Site and Month, calculate average utilization
+    expanded_df['Month'] = pd.to_datetime(expanded_df['Date']).dt.to_period('M').astype(str)
     grouped = expanded_df.groupby(['Site Name', 'Month']).agg({
         'totalDuration': 'sum',
         'Station ID': 'nunique'
     }).reset_index()
-
     grouped['Avg Utilisation'] = grouped['totalDuration'] / (24 * 60 * grouped['Station ID'] * grouped['Month'].apply(lambda x: pd.Period(x, freq='M').days_in_month))
-    plot_data = grouped.pivot(index='Month', columns='Site Name', values='Avg Utilisation').fillna(0)
 
-    # Convert data points to a list of dictionaries
-    data_points = plot_data.to_dict(orient='records')
-
-    # Convert to JSON format
-    data_json = json.dumps(data_points)
+    # Prepare data for JSON
+    data_json = grouped.to_json(orient='records')
 
     return data_json
 

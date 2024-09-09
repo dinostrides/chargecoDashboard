@@ -14,13 +14,14 @@ import addresses from "./datasets/utilisationAddresses.json";
 import LoadingOverlay from './components/LoadingOverlay';
 import axios, { all } from 'axios';
 import './lineGraph.css';
+import chargers from "./datasets/chargers.json";
 
 function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
   const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
-  const [address, setAddress] = useState("");
-  const [charger, setCharger] = useState("");
+  const [address, setAddress] = useState("All");
+  const [charger, setCharger] = useState("All");
   const [pieChartDataUser, setPieChartDataUser] = useState();
   const [pieChartDataFleet, setPieChartDataFleet] = useState();
   const [pieChartDataMember, setPieChartDataMember] = useState();
@@ -38,7 +39,16 @@ function Users() {
   const [partnerCard, setPartnerCard] = useState();
 
 
-
+  const formatLabel = (label, maxLength) => {
+    if (label.length <= maxLength) return label;
+  
+    // Calculate break points
+    const firstBreak = Math.ceil(label.length / 3)-1;
+    const secondBreak = Math.ceil((2 * label.length) / 3)-1;
+  
+    return `${label.slice(0, firstBreak)}\n${label.slice(firstBreak, secondBreak)}\n${label.slice(secondBreak)}`;
+  };
+  
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -178,9 +188,11 @@ function Users() {
                       label="Charger"
                       onChange={handleChargerChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
+                  {chargers.map((charger, index) => (
+                        <MenuItem key={index} value={charger}>
+                          {charger}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Stack>
@@ -315,27 +327,29 @@ function Users() {
                 }}
               >
                 <PieChart
-                  series={[
-                    {
-                      arcLabel: (item) => `${item.label} (${item.value})`,
-                      arcLabelMinAngle: 45,
-                      data: pieChartDataMember
-                        ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
-                          id,
-                          value,
-                          label: truncateLabel(label, 20),
-                        }))
-                        : [],
-                    },
-                  ]}
-                  sx={{
-                    [`& .${pieArcLabelClasses.root}`]: {
-                      fill: 'white',
-                      fontWeight: 'bold',
-                    },
-                  }}
-                  height={420}
-                />
+      series={[
+        {
+          arcLabel: (item) => `${formatLabel(item.label, 20)}\n(${item.value})`,
+          arcLabelMinAngle: 45,
+          data: pieChartDataMember
+            ? Object.entries(pieChartDataMember).map(([label, value], id) => ({
+                id,
+                value,
+                label: formatLabel(label, 20),
+              }))
+            : [],
+        },
+      ]}
+      sx={{
+        [`& .${pieArcLabelClasses.root}`]: {
+          fill: 'white',
+          fontWeight: 'bold',
+          fontSize: '12px', // Adjust font size here
+          whiteSpace: 'pre-line', // Ensures that \n is treated as a line break
+        },
+      }}
+      height={420}
+    />
               </Box>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={6}>

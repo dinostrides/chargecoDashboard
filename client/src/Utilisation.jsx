@@ -24,6 +24,7 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import UtilisationCard from './components/cards/UtilisationCard';
 import axios from 'axios';
 import addresses from "./datasets/utilisationAddresses.json";
+import chargers from "./datasets/chargers.json";
 import LoadingOverlay from './components/LoadingOverlay';
 
 
@@ -112,7 +113,6 @@ function Utilisation() {
       }
     }
     fetchData();
-    console.log(startDate.$d, endDate.$d)
   }, [startDate, endDate])
 
   return (
@@ -200,10 +200,13 @@ function Utilisation() {
                       label="Charger"
                       onChange={handleChargerChange}
                     >
-                      <MenuItem value={10}>All</MenuItem>
-                      <MenuItem value={20}>Option</MenuItem>
-                      <MenuItem value={30}>Option</MenuItem>
-                    </Select>
+                      {chargers.map((charger, index) => (
+                        <MenuItem key={index} value={charger}>
+                          {charger}
+                        </MenuItem>
+                      ))}
+                 
+                   </Select>
                   </FormControl>
 
                 </Stack>
@@ -271,7 +274,7 @@ function Utilisation() {
                     data: seriesData,
                     area: true,
                     label: "Average Utilisation Rate (%)",
-                    color: "pink"
+                    color: "#99c99e"
                   },
                 ]}
                 height={400}
@@ -301,7 +304,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: 'pink' },
+                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: '#99c99e' },
                           ]}
                           xAxis={[
                             {
@@ -334,7 +337,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: 'pink' },
+                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: '#99c99e' },
                           ]}
                           xAxis={[
                             {

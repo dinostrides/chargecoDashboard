@@ -46,10 +46,8 @@ function ByStation() {
 
   // to do when data returned is fixed
   const [byStationMonth, setByStationMonth] = useState([]);
-  const xAxisDataMonth = byStationHour.map((item) => item.Hour);
-  const seriesDataMonth = byStationHour.map(
-    (item) => item["Average Utilisation"] * 100
-  );
+  const [xData, setXData] = useState([]); // For storing months (x-axis)
+  const [yData, setYData] = useState([]);
 
   const [avgUtilisationDay, setAvgUtilisationDay] = useState();
   const [avgUtilisationNight, setAvgUtilisationNight] = useState();
@@ -95,18 +93,19 @@ function ByStation() {
 
         setByStationHour(byStationHour.data.station_hour);
 
-        // const byStationMonth = await axios.post(
-        //   "http://localhost:8000/byStationTimeSeriesChart/",
-        //   {
-        //     start_date: startDate,
-        //     end_date: endDate,
-        //     location: location,
-        //     power_type: powerType,
-        //   }
-        // );
+        const byStationMonth = await axios.post(
+          "http://localhost:8000/byStationTimeSeriesChart/",
+          {
+            start_date: startDate,
+            end_date: endDate,
+            location: location,
+            power_type: powerType,
+          }
+        );
 
-        //console.log(byStationMonth.data) // current returns location number but line chart requires month as x axis, data shld be month, number
-        //have not updated line chart data yet
+        
+        setByStationMonth(byStationMonth.data.util_timeseries);
+        console.log(byStationMonth.data.util_timeseries) 
 
         const byStationBarChart = await axios.post(
           "http://localhost:8000/byStationUtilBarChart/",
@@ -135,6 +134,25 @@ function ByStation() {
     };
     fetchData();
   }, [startDate, endDate, location, powerType]);
+
+  useEffect(() => {
+    if (byStationMonth.length > 0) {
+      const filteredData = byStationMonth.filter(item => item["Site Name"] !== ""); //the data returned has double the array size with the first half having empty "Site Name" key
+      // Extract months and avg utilization
+      const months = filteredData.map(item => item.Month);
+      const avgUtilisation = filteredData.map(item => item["Avg Utilisation"]);
+
+      // Set xData and yData state variables
+      setXData(months);
+      setYData(avgUtilisation);
+    }
+  }, [byStationMonth]);
+
+
+  useEffect(() => {
+    console.log("xData", xData)
+    console.log("yData", yData)
+  }, [xData, yData])
 
   return (
 
@@ -191,7 +209,13 @@ function ByStation() {
                         component="span"
                         sx={{
                           fontWeight: "normal",
-                          fontSize: "25px",
+                          fontSize: {
+                            xs: "15px",
+                            sm: "15px",
+                            md: "20px",
+                            lg: "20px",
+                            xl: "25px"
+                          }
                         }}
                       >
                         {location === "" ? "None" : location}
@@ -290,7 +314,7 @@ function ByStation() {
                 {
                   data: seriesDataHour,
                   label: "Average Utilisation Per Hour(%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               height={700}
@@ -313,7 +337,13 @@ function ByStation() {
             <div className="custom-y-padding-bottom">
             
             <LineChart
-              xAxis={[{ data: [1, 2, 3, 5, 8, 10], label: 'Month' }]}
+             xAxis={[
+              {
+                data: xData,
+                scaleType: "band",
+                label: "Month"
+              },
+            ]}
               yAxis={[
                 {
                   label: "Average Utilisation (%)",
@@ -321,7 +351,7 @@ function ByStation() {
               ]}
               series={[
                 {
-                  data: [2, 5.5, 2, 8.5, 1.5, 5],
+                  data: yData,
                 },
               ]}
               height={500}
@@ -334,7 +364,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationDay, avgUtilisationNight],
                   label: "Average Utilisation (%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               xAxis={[
@@ -352,7 +382,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationWeekday, avgUtilisationWeekend],
                   label: "Average Utilisation (%)",
-                  color: "pink",
+                  color: "#99c99e",
                 },
               ]}
               xAxis={[
