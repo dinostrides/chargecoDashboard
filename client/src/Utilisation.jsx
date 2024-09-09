@@ -53,6 +53,8 @@ function Utilisation() {
   const [avgUtilisationWeekday, setAvgUtilisationWeekday] = useState();
   const [avgUtilisationWeekend, setAvgUtilisationWeekend] = useState();
 
+  const [clusterMapData, setClusterMapData] = useState([]);
+
   const handleAddressChange = (event) => {
     setAddress(event.target.value);
   };
@@ -82,8 +84,9 @@ function Utilisation() {
           start_date: startDate,
           end_date: endDate
         })
-        // console.log(utilisationClusterMap.data.clustermap_markers_json)
-        // can get data already (lat long) but need to ask about how we want to display it
+
+        setClusterMapData(utilisationClusterMap.data.clustermap_markers_json)
+        
 
         const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
           start_date: startDate,
@@ -263,7 +266,7 @@ function Utilisation() {
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={12} xl={8} sx={{ display: 'flex' }}>
-            <ClusterMap></ClusterMap>
+            <ClusterMap data={clusterMapData}></ClusterMap>
           </Grid>
           {/* Bottom row with 2 items */}
           <Grid item xs={12}>
