@@ -10,6 +10,6 @@ def format_addresses(input_file, output_file):
             outfile.write(formatted_line)
 
 if __name__ == "__main__":
-    input_file = 'addresses.json'
+    input_file = 'chargers.json'
     output_file = 'addresses_formatted.json'
     format_addresses(input_file, output_file)
