@@ -26,6 +26,7 @@ import axios from 'axios';
 import addresses from "./datasets/utilisationAddresses.json";
 import chargers from "./datasets/chargers.json";
 import LoadingOverlay from './components/LoadingOverlay';
+import ClusterMap from './components/ClusterMap';
 
 
 function Utilisation() {
@@ -262,7 +263,7 @@ function Utilisation() {
             </Grid>
           </Grid>
           <Grid item xs={12} md={12} lg={12} xl={8} sx={{ display: 'flex' }}>
-            <LeafletMap />
+            <ClusterMap></ClusterMap>
           </Grid>
           {/* Bottom row with 2 items */}
           <Grid item xs={12}>
