@@ -354,6 +354,7 @@ function ByStation() {
                   data: yData,
                 },
               ]}
+              grid={{ vertical: true, horizontal: true }}
               height={500}
             />
             </div>
