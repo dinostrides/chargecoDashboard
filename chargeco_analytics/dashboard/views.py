@@ -466,9 +466,17 @@ def byStationCards(request):
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
     endDate = pd.to_datetime(endDate, errors='coerce')
-    startDate = startDate.strftime('%d/%m/%Y %H:%M')
-    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate_str = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate_str = endDate.strftime('%d/%m/%Y %H:%M')
 
+    # Generate a unique cache key based on filters
+    cache_key = f"timeseries_{startDate_str}_{endDate_str}_{location}_{powerType}"
+
+    # Load cached data if available
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+    
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -512,6 +520,9 @@ def byStationCards(request):
         'avg_util': avg_util
     }    
 
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
+
     return JsonResponse(response, safe=False)
 
 @csrf_exempt
@@ -523,17 +534,19 @@ def byStationHour(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-     # Load cached data if available
-    cache_key = "by_station_hour"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
     endDate = pd.to_datetime(endDate, errors='coerce')
-    startDate = startDate.strftime('%d/%m/%Y %H:%M')
-    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate_str = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate_str = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"timeseries_{startDate_str}_{endDate_str}_{location}_{powerType}"
+
+    # Load cached data if available
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -577,17 +590,19 @@ def byStationTimeSeriesChart(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-    # Load cached data if available
-    cache_key = "timeseries"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
     endDate = pd.to_datetime(endDate, errors='coerce')
-    startDate = startDate.strftime('%d/%m/%Y %H:%M')
-    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate_str = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate_str = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"timeseries_{startDate_str}_{endDate_str}_{location}_{powerType}"
+
+    # Load cached data if available
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -630,17 +645,19 @@ def byStationUtilBarChart(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-     # Load cached data if available
-    cache_key = "bystation_util_barchart"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
     endDate = pd.to_datetime(endDate, errors='coerce')
-    startDate = startDate.strftime('%d/%m/%Y %H:%M')
-    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate_str = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate_str = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"timeseries_{startDate_str}_{endDate_str}_{location}_{powerType}"
+
+    # Load cached data if available
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
