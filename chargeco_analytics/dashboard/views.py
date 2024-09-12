@@ -474,7 +474,6 @@ def byStationUtilBarChart(request):
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
-    settings.password
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)

@@ -148,12 +148,6 @@ function ByStation() {
     }
   }, [byStationMonth]);
 
-
-  useEffect(() => {
-    console.log("xData", xData)
-    console.log("yData", yData)
-  }, [xData, yData])
-
   return (
 
     <div style={{ position: 'relative' }}>
