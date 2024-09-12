@@ -19,44 +19,60 @@ import plotly.io as pio
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from chargeco_analytics.settings import CREDENITALS
+import hashlib
 
-# import logging
 
-# logger=logging.getLogger('django')
+@csrf_exempt
+@require_POST
+def login(request):
+    data = json.loads(request.body.decode('utf-8'))
+    username = data.get("username")
+    password = data.get("password")
+    
+    # Encode the password to bytes before hashing
+    password_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
+    
+    if (password_check == CREDENITALS['hashed_password']) and (username == CREDENITALS['username']):
+        return JsonResponse({"success": "True", "message": "Logged in successfully"})
+    
+    return JsonResponse({"success": "False", "message": "Login or password incorrect"})
 
-class LoginView(View):
-    @method_decorator(require_GET)
-    def get(self, request):
-        response = render(request, "login.html")
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        return response
 
-class LoginUserView(View):
-    @method_decorator(require_POST)
-    def post(self, request):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('overview')
-        else:
-            return render(request, "login.html", {'error': 'Invalid username or password'})
 
-class LogoutUserView(View):
-    @method_decorator(require_http_methods(["GET", "POST"]))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+# class LoginView(View):
+#     @method_decorator(require_GET)
+#     def get(self, request):
+#         response = render(request, "login.html")
+#         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+#         response['Pragma'] = 'no-cache'
+#         response['Expires'] = '0'
+#         return response
 
-    def get(self, request):
-        logout(request)
-        return redirect('login')
+# class LoginUserView(View):
+#     @method_decorator(require_POST)
+#     def post(self, request):
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user = authenticate(request, username=username, password=password)
+#         if user is not None:
+#             login(request, user)
+#             return redirect('overview')
+#         else:
+#             return render(request, "login.html", {'error': 'Invalid username or password'})
 
-    def post(self, request):
-        logout(request)
-        return redirect('login')
+# class LogoutUserView(View):
+#     @method_decorator(require_http_methods(["GET", "POST"]))
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+
+#     def get(self, request):
+#         logout(request)
+#         return redirect('login')
+
+#     def post(self, request):
+#         logout(request)
+#         return redirect('login')
 
 ########################################################
 ####################### OVERVIEW #######################
@@ -458,7 +474,7 @@ def byStationUtilBarChart(request):
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
-
+    settings.password
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
