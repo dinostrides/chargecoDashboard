@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, TextField, Stack, Button } from "@mui/material";
 import Digitalization from "./assets/digitalization.jpg";
 import chargeco from "./assets/chargeco.png";
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios';
 
 function Login() {
 
   const navigate = useNavigate();
+  const [username, setUsername] = useState();
+  const [password, setPassword] = useState();
+
+  
+  const handleLogin = async(e) => {
+    e.preventDefault();
+
+    try {
+      const loginResponse = await axios.post("http://localhost:8000/login/", {
+        username: username,
+        password: password
+      })
+
+      const success = loginResponse.data.success
+      if (success == "True") {
+        navigate("/overview");
+      }
+
+    }
+    catch (error) {
+      console.log(error.message)
+    }
+  }
 
   return (
     <Box
@@ -89,17 +113,21 @@ function Login() {
               Sign in to your account
             </Typography>
             <Stack spacing={3} marginLeft={'18%'} marginTop={'5%'}>
-              <TextField id="outlined-basic" label="Username" variant="outlined" sx={{
+              <TextField id="outlined-basic" label="Username" variant="outlined" value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              sx={{
                 width: '70%',
               }} />
-              <TextField id="outlined-basic" label="Password" variant="outlined" type="password" sx={{
+              <TextField id="outlined-basic" label="Password" variant="outlined" type="password" value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{
                 width: '70%'
               }} />
               <Button variant="contained" sx={{
                 width: '25%',
                 borderRadius: '20px',
                 minWidth: '100px'
-              }} onClick={() => { navigate('/overview') }}>Log In</Button>
+              }} onClick={handleLogin}>Log In</Button>
             </Stack>
           </Box>
         </Box>

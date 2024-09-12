@@ -138,6 +138,12 @@ CACHES = {
     }
 }
 
+CREDENITALS ={
+    "username": "sd_admin_sg",
+    "hashed_password": "fddd8cea6df64e39eaad86b22fc8b9faa68a2ff938522fa45dd56b411a5a2fb1"
+}
+
+
 # settings.py
 
 # LOGGING = {
