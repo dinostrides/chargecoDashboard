@@ -26,4 +26,5 @@ urlpatterns = [
     path('usersCards/', views.usersCards),
     path('billingCards/', views.billingCards),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/validate-token/', views.validate_token, name='validate_token'),
 ]

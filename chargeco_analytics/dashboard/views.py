@@ -26,6 +26,17 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import TokenError
 
+@csrf_exempt
+@require_POST
+def validate_token(request):
+    # The `jwt_required` function can be used to validate the token
+    @jwt_required
+    def validate_view(request):
+        return JsonResponse({'detail': 'Token is valid'}, status=200)
+
+    return validate_view(request)
+
+
 def jwt_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         auth_header = request.headers.get('Authorization')

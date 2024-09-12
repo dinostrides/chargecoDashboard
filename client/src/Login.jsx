@@ -12,30 +12,31 @@ function Login() {
   const [password, setPassword] = useState();
 
   
-  const handleLogin = async(e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
       const loginResponse = await axios.post("http://localhost:8000/login/", {
         username: username,
         password: password
-      })
+      });
 
       const success = loginResponse.data.success;
       const accessToken = loginResponse.data.access;
       const refreshToken = loginResponse.data.refresh;
-      
-      if (success == "True") {
+
+      if (success === "True") {
+        // Save tokens to localStorage
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
+
+        // Navigate after setting tokens
         navigate("/overview");
       }
-
+    } catch (error) {
+      console.log(error.message);
     }
-    catch (error) {
-      console.log(error.message)
-    }
-  }
+  };
 
   return (
     <Box
