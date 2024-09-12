@@ -29,6 +29,9 @@ import ClusterMap from './components/ClusterMap';
 
 
 function Utilisation() {
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [address, setAddress] = useState("All");
@@ -62,6 +65,19 @@ function Utilisation() {
     setCharger(event.target.value);
   };
 
+
+  const refreshAccessToken = async (refreshToken) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        refresh: refreshToken
+      });
+      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,6 +87,10 @@ function Utilisation() {
           end_date: endDate,
           address: address,
           charger: charger
+        },{
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
         const data = utilisationLeftCards.data
         setTotalChargingSessions(data.total_charging_sessions);
@@ -82,6 +102,10 @@ function Utilisation() {
         const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
           start_date: startDate,
           end_date: endDate
+        },{
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         setClusterMapData(utilisationClusterMap.data.clustermap_markers_json)
@@ -90,6 +114,10 @@ function Utilisation() {
         const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
           start_date: startDate,
           end_date: endDate
+        },{
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         setUtilChartData(utilisationUtilChart.data.utilisation_hourly_chart_data_json)
@@ -97,6 +125,10 @@ function Utilisation() {
         const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
           start_date: startDate,
           end_date: endDate
+        },{
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         const dayNightData = utilisationBarChart.data.util_dayNight_data_json;
@@ -106,17 +138,28 @@ function Utilisation() {
         const weekdayWeekendData = utilisationBarChart.data.util_weekdayWeekend_data_json;
         setAvgUtilisationWeekday(weekdayWeekendData[0].Utilisation);
         setAvgUtilisationWeekend(weekdayWeekendData[1].Utilisation);
-
-      }
-      catch (error) {
-        console.log(error.message)
-      }
-      finally {
+      } catch (error) {
+        if (error.response?.data?.detail === "Invalid or expired token") {
+          try {
+            const { access } = await refreshAccessToken(refreshToken);
+            localStorage.setItem('accessToken', access);
+            setAccessToken(access);
+          } catch (refreshError) {
+            console.error('Failed to refresh token and retry API call', refreshError);
+            // Handle token refresh failure (e.g., redirect to login)
+          }
+        } else {
+          console.error('API request failed', error);
+        }
+      } finally {
         setIsLoading(false);
       }
-    }
+    };
+
     fetchData();
-  }, [startDate, endDate])
+  }, [startDate, endDate, accessToken]);
+
+
 
   return (
 

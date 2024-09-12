@@ -13,6 +13,9 @@ import LoadingOverlay from './components/LoadingOverlay'
 
 function Billing() {
 
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
+
   const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
@@ -48,15 +51,32 @@ function Billing() {
     setCharger(event.target.value);
   }
 
+
+  const refreshAccessToken = async (refreshToken) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        refresh: refreshToken
+      });
+      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
+        
         const billingCards = await axios.post("http://localhost:8000/billingCards/", {
           power_type: powerType,
           price: price,
           charger: charger
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         setAvgEnergyPerMonthCard(billingCards.data.average_energy_per_month)
@@ -66,6 +86,10 @@ function Billing() {
           power_type: powerType,
           price: price,
           charger: charger
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         });
 
         const tableDataArr = tableResponse.data;
@@ -75,6 +99,10 @@ function Billing() {
           power_type: powerType,
           price: price,
           charger: charger
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         });
 
         setBillingRevenueChartData(billingRevenueChart.data.total_energy_cost);
@@ -83,22 +111,39 @@ function Billing() {
         //   power_type: powerType,
         //   price: price,
         //   charger: charger
+        // }, {
+        //   headers: {
+        //     'Authorization': `Bearer ${accessToken}`
+        //   }
         // })
         // const reformattedData = reformatBillingData(billingEnergyChart.data.total_monthly_charger);
         // console.log(reformattedData);
         // setBillingEnergyChartData(reformattedData)
 
+      } catch (error) {
+        if (error.response?.data?.detail === "Invalid or expired token") {
+          try {
+            const { access } = await refreshAccessToken(refreshToken);
+            localStorage.setItem('accessToken', access);
+            setAccessToken(access);
+          } catch (refreshError) {
+            console.error('Failed to refresh token and retry API call', refreshError);
+            // Handle token refresh failure (e.g., redirect to login)
+          }
+        } else {
+          console.error('API request failed', error);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      }
-      catch (error) {
-        console.log(error.message)
-      }
-      finally {
-        setIsLoading(false); // Ensure this is executed even if there's an error
-      }
-    }
     fetchData();
-  }, [startDate, endDate])
+  }, [startDate, endDate, accessToken]);
+
+
+
+
 
 
   function reformatBillingData(billingEnergyChartData) {

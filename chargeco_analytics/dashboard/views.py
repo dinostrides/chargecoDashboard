@@ -107,6 +107,7 @@ def overviewMap(request):
 #this function returns the total locations and total charging points on overview page
 @csrf_exempt
 @require_POST
+@jwt_required
 def overviewRightCards(request):
     data = json.loads(request.body.decode('utf-8'))
     locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
@@ -131,6 +132,7 @@ def overviewRightCards(request):
 #this function returns the locations utilised, avg charging sessions per location, avg unique vehicles per location and avg utilisation
 @csrf_exempt
 @require_POST
+@jwt_required
 def overviewLeftCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -167,6 +169,7 @@ def overviewLeftCards(request):
 #this function returns the chargerid and utilisation rate to be displayed in the overview page table
 @csrf_exempt
 @require_POST
+@jwt_required
 def overviewTable(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date")
@@ -198,6 +201,7 @@ def overviewTable(request):
 #this function returns the total charging sessions, ac/dc charging sessions, avg mins per ac/dc charging session
 @csrf_exempt
 @require_POST
+@jwt_required
 def utilisationLeftCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -235,6 +239,7 @@ def utilisationLeftCards(request):
 #this function returns the heatmap
 @csrf_exempt
 @require_POST
+@jwt_required
 def utilisationClusterMap(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -259,6 +264,7 @@ def utilisationClusterMap(request):
 #this function returns the utilisation chart
 @csrf_exempt
 @require_POST
+@jwt_required
 def utilisationUtilChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -292,6 +298,7 @@ def utilisationUtilChart(request):
 #this function returns the day/night & weekend/weekday chart
 @csrf_exempt
 @require_POST
+@jwt_required
 def utilisationBarChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -333,6 +340,7 @@ def utilisationBarChart(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def byStationCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date")
@@ -381,6 +389,7 @@ def byStationCards(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def byStationHour(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date")
@@ -422,6 +431,7 @@ def byStationHour(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def byStationTimeSeriesChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date")
@@ -463,6 +473,7 @@ def byStationTimeSeriesChart(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def byStationUtilBarChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date")
@@ -513,6 +524,7 @@ def byStationUtilBarChart(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def billingCards(request):
     data = json.loads(request.body.decode('utf-8'))
     powerType = data.get("power_type")
@@ -543,6 +555,7 @@ def billingCards(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def billingTable(request):
     data = json.loads(request.body.decode('utf-8'))
     powerType = data.get("power_type")
@@ -565,6 +578,7 @@ def billingTable(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def billingRevenueChart(request):
     data = json.loads(request.body.decode('utf-8'))
     # powerType = data.get("power_type")
@@ -587,6 +601,7 @@ def billingRevenueChart(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def billingEnergyChart(request):
     data = json.loads(request.body.decode('utf-8'))
     powerType = data.get("power_type")
@@ -614,6 +629,7 @@ def billingEnergyChart(request):
 # Calculates average price
 @csrf_exempt
 @require_POST
+@jwt_required
 def pricingCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -637,6 +653,7 @@ def pricingCards(request):
 # Returns payment mode chart points (JSON)
 @csrf_exempt
 @require_POST
+@jwt_required
 def pricingPaymentModeChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -661,6 +678,7 @@ def pricingPaymentModeChart(request):
 # Returns utilisation price chart points (JSON)
 @csrf_exempt
 @require_POST
+@jwt_required
 def pricingUtilisationPriceChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -688,6 +706,7 @@ def pricingUtilisationPriceChart(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def usersCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -719,6 +738,7 @@ def usersCards(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def usersDonutCharts(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
@@ -755,6 +775,7 @@ def usersDonutCharts(request):
 
 @csrf_exempt
 @require_POST
+@jwt_required
 def usersUserChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z

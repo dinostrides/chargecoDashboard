@@ -26,6 +26,10 @@ import axios from "axios";
 import LoadingOverlay from "./components/LoadingOverlay";
 
 function ByStation() {
+
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
+
   const [isLoading, setIsLoading] = useState(true);
   const today = dayjs();
   const oneYearAgo = today.subtract(1, "year");
@@ -62,11 +66,24 @@ function ByStation() {
     setPowerType(event.target.value);
   };
 
+
+  const refreshAccessToken = async (refreshToken) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        refresh: refreshToken
+      });
+      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
+        
         const byStationCards = await axios.post(
           "http://localhost:8000/byStationCards/",
           {
@@ -74,6 +91,10 @@ function ByStation() {
             end_date: endDate,
             location: location,
             power_type: powerType,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
           }
         );
 
@@ -88,6 +109,10 @@ function ByStation() {
             end_date: endDate,
             location: location,
             power_type: powerType,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
           }
         );
 
@@ -100,6 +125,10 @@ function ByStation() {
             end_date: endDate,
             location: location,
             power_type: powerType,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
           }
         );
 
@@ -114,6 +143,10 @@ function ByStation() {
             end_date: endDate,
             location: location,
             power_type: powerType,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
           }
         );
 
@@ -124,16 +157,30 @@ function ByStation() {
         const weekdayWeekendData = byStationBarChart.data.util_weekdayWeekend;
         setAvgUtilisationWeekday(weekdayWeekendData[0].Utilisation);
         setAvgUtilisationWeekend(weekdayWeekendData[1].Utilisation);
-        
+
       } catch (error) {
-        console.log(error.message);
-      }
-      finally {
+        if (error.response?.data?.detail === "Invalid or expired token") {
+          try {
+            const { access } = await refreshAccessToken(refreshToken);
+            localStorage.setItem('accessToken', access);
+            setAccessToken(access);
+          } catch (refreshError) {
+            console.error('Failed to refresh token and retry API call', refreshError);
+            // Handle token refresh failure (e.g., redirect to login)
+          }
+        } else {
+          console.error('API request failed', error);
+        }
+      } finally {
         setIsLoading(false);
       }
     };
+
     fetchData();
-  }, [startDate, endDate, location, powerType]);
+  }, [startDate, endDate, accessToken]);
+
+
+
 
   useEffect(() => {
     if (byStationMonth.length > 0) {
