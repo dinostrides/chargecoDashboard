@@ -23,9 +23,11 @@ function Login() {
 
       const success = loginResponse.data.success;
       const accessToken = loginResponse.data.access;
+      const refreshToken = loginResponse.data.refresh;
       
       if (success == "True") {
-        localStorage.setItem('accessToken', accessToken)
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
         navigate("/overview");
       }
 

@@ -150,6 +150,12 @@ CREDENTIALS ={
     "hashed_password": "fddd8cea6df64e39eaad86b22fc8b9faa68a2ff938522fa45dd56b411a5a2fb1"
 }
 
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=30),  # Set to 10 seconds for testing purposes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Adjust as needed
+}
 
 # settings.py
 

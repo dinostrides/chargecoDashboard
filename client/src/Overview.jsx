@@ -26,7 +26,8 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import SortableTableOverview from "./components/SortableTableOverview";
 
 function Overview() {
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
@@ -58,74 +59,101 @@ function Overview() {
     setPowerType(event.target.value);
   }
 
+  const refreshAccessToken = async(refreshToken) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        refresh: refreshToken
+      });
+      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (isRetrying = false) => {
       try {
         setIsLoading(true);
-
+  
         const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
           location_status: locationStatus,
           power_type: powerType
-        },
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      })
-        const dataString = map_coordinates.data
-        const data = JSON.parse(dataString)
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        const dataString = map_coordinates.data;
+        const data = JSON.parse(dataString);
         setMapData(data);
-
+  
         const rightCards = await axios.post('http://localhost:8000/overviewRightCards/', {
           location_status: locationStatus,
           power_type: powerType
-        },
-        {
+        }, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
         });
-
-        setTotalLocations(rightCards.data.total_locations)
-        setTotalChargingPoints(rightCards.data.total_charging_points)
-
+  
+        setTotalLocations(rightCards.data.total_locations);
+        setTotalChargingPoints(rightCards.data.total_charging_points);
+  
         const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/', {
           start_date: startDate,
           end_date: endDate
-        },
-        {
+        }, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
         });
-        
+  
         setLocationsUtilised(leftCards.data.locations_utilised);
         setAvgChargingSessionsPerLocation(leftCards.data.avg_charging_sessions_per_location);
         setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
         setAvgUtilisation(leftCards.data.avg_utilisation);
-
-        const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
+  
+        const tableResponse = await axios.post('http://localhost:8000/overviewTable/', {
           start_date: startDate,
           end_date: endDate
-        },
-        {
+        }, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
         });
-
+  
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr);
+      } catch (error) {
+        if (error.response?.data?.detail === "Invalid or expired token" && !isRetrying) {
+          // If token is expired and it's not a retry
+          try {
+            const { access } = await refreshAccessToken(refreshToken);
+  
+            // Store new tokens
+            localStorage.setItem('accessToken', access);
+            
+            // Update state with new tokens
+            setAccessToken(access);
+  
+            // Retry fetching data with the new access token, set retry flag to true
+            await fetchData(true); 
+          } catch (refreshError) {
+            console.error('Failed to refresh token and retry API call', refreshError);
+            // Handle token refresh failure (e.g., redirect to login)
+          }
+        } else {
+          console.error('API request failed', error);
+        }
+      } finally {
+        setIsLoading(false); // Ensure this is executed even if there's an error
       }
-      catch (error) {
-        console.log(error.message)
-      }
-      finally {
-      setIsLoading(false); // Ensure this is executed even if there's an error
-    }
-    }
+    };
+  
     fetchData();
-  }, [startDate, endDate])
+  }, [startDate, endDate, accessToken]);
+  
 
   return (
     <div style={{ position: 'relative' }}>

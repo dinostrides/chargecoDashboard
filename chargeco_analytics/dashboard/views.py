@@ -24,22 +24,24 @@ import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.exceptions import TokenError
 
 def jwt_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         auth_header = request.headers.get('Authorization')
         if not auth_header:
-            return JsonResponse({'detail': 'Authorization header missing'}, status=401)
+            return JsonResponse({'detail': 'Authorization header missing'}, status=401) #if jwt token not specified
 
         try:
             token = auth_header.split(' ')[1]
             AccessToken(token)  # Validate token
-        except (IndexError, AuthenticationFailed):
-            return JsonResponse({'detail': 'Invalid token'}, status=401)
+        except TokenError:
+            return JsonResponse({'detail': 'Invalid or expired token'}, status=401) #jwt token specified but wrong/expired
+        except AuthenticationFailed:
+            return JsonResponse({'detail': 'Authentication failed'}, status=401)
 
         return view_func(request, *args, **kwargs)
     return _wrapped_view
-
 
 # Dummy User class to simulate a user object
 class DummyUser:
@@ -86,8 +88,6 @@ def overviewMap(request):
     data = json.loads(request.body.decode('utf-8'))
     locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
     powerType = data.get("power_type") #either "all", "ac", "dc"
-
-    #todo: use locationStatus and powerType to filter results then return it below as response
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
