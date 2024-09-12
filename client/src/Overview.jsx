@@ -26,6 +26,8 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import SortableTableOverview from "./components/SortableTableOverview";
 
 function Overview() {
+  const accessToken = localStorage.getItem('accessToken');
+
   const today = dayjs();
   const oneYearAgo = today.subtract(1, 'year');
   const [startDate, setStartDate] = useState(oneYearAgo);
@@ -64,7 +66,12 @@ function Overview() {
         const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
           location_status: locationStatus,
           power_type: powerType
-        })
+        },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
         const dataString = map_coordinates.data
         const data = JSON.parse(dataString)
         setMapData(data);
@@ -72,6 +79,11 @@ function Overview() {
         const rightCards = await axios.post('http://localhost:8000/overviewRightCards/', {
           location_status: locationStatus,
           power_type: powerType
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         });
 
         setTotalLocations(rightCards.data.total_locations)
@@ -80,6 +92,11 @@ function Overview() {
         const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/', {
           start_date: startDate,
           end_date: endDate
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         });
         
         setLocationsUtilised(leftCards.data.locations_utilised);
@@ -90,6 +107,11 @@ function Overview() {
         const tableResponse = await axios.post("http://localhost:8000/overviewTable/", {
           start_date: startDate,
           end_date: endDate
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         });
 
         const tableDataArr = tableResponse.data;

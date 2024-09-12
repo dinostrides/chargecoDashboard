@@ -21,8 +21,11 @@ function Login() {
         password: password
       })
 
-      const success = loginResponse.data.success
+      const success = loginResponse.data.success;
+      const accessToken = loginResponse.data.access;
+      
       if (success == "True") {
+        localStorage.setItem('accessToken', accessToken)
         navigate("/overview");
       }
 
