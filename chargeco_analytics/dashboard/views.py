@@ -19,8 +19,16 @@ import plotly.io as pio
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from chargeco_analytics.settings import CREDENITALS
+from chargeco_analytics.settings import CREDENTIALS
 import hashlib
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+# Dummy User class to simulate a user object
+class DummyUser:
+    def __init__(self, username):
+        self.username = username
+        self.id = 1  # Dummy ID for the sake of token generation
 
 
 @csrf_exempt
@@ -29,13 +37,24 @@ def login(request):
     data = json.loads(request.body.decode('utf-8'))
     username = data.get("username")
     password = data.get("password")
-    
-    # Encode the password to bytes before hashing
+
+    # Hash the password provided by the user
     password_check = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    
-    if (password_check == CREDENITALS['hashed_password']) and (username == CREDENITALS['username']):
-        return JsonResponse({"success": "True", "message": "Logged in successfully"})
-    
+
+    # Validate the username and hashed password
+    if (password_check == CREDENTIALS['hashed_password']) and (username == CREDENTIALS['username']):
+        # Create a dummy user instance
+        user = DummyUser(username)
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        return JsonResponse({
+            "success": "True",
+            "message": "Logged in successfully",
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        })
+
     return JsonResponse({"success": "False", "message": "Login or password incorrect"})
 
 
