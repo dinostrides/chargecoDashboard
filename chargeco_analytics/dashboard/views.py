@@ -248,6 +248,8 @@ def utilisationLeftCards(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -306,6 +308,8 @@ def utilisationClusterMap(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -357,6 +361,8 @@ def utilisationUtilChart(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -412,6 +418,8 @@ def utilisationBarChart(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()

@@ -211,14 +211,26 @@ def get_util_clustermap_json(charger_charging):
         'totalDuration': 'sum',
         'latitude': 'first',
         'longitude': 'first',
-        'Date': lambda x: x.max() - x.min()
+        'Date': lambda x: x.max() - x.min() if len(x) > 1 else pd.NaT
     }).reset_index()
 
     charger_utilisation = charger_times.copy()
     charger_utilisation.columns = ['Charger ID', 'Total Time', 'Latitude', 'Longitude', 'Time Period']
+
+    # Ensure Time Period contains valid timedelta values
+    charger_utilisation['Time Period'] = pd.to_timedelta(charger_utilisation['Time Period'], errors='coerce')
+
+    # Convert the timedelta to minutes
     charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    
+    # Ensure Time Period is never zero to avoid division by zero
     charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
-    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']) * 100, axis=1)
+    
+    # Calculate Utilisation Rate
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(
+        lambda x: (x['Total Time'] / x['Time Period']) * 100, axis=1
+    )
+    
     charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
 
     # Prepare data for JSON
@@ -315,7 +327,7 @@ def util_hour_chart(charging, start_date=min_date, end_date=max_date):
     return fig
 
 # Utilisation Hourly Chart Data Points to JSON
-def util_hour_chart_json(charging, start_date=min_date, end_date=max_date):
+def util_hour_chart_json(charging):
     # Prepare the data for plotting
     pivot_df_reset = get_util_hour_df(charging)
     pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
