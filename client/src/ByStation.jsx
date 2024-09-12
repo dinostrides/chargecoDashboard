@@ -140,7 +140,7 @@ function ByStation() {
       const filteredData = byStationMonth.filter(item => item["Site Name"] !== ""); //the data returned has double the array size with the first half having empty "Site Name" key
       // Extract months and avg utilization
       const months = filteredData.map(item => item.Month);
-      const avgUtilisation = filteredData.map(item => item["Avg Utilisation"]);
+      const avgUtilisation = filteredData.map(item => item["Avg Utilisation"] * 100);
 
       // Set xData and yData state variables
       setXData(months);
