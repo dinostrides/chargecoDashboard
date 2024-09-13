@@ -13,6 +13,12 @@ function Login() {
   const [showErrorMessage, setShowErrorMessage] = useState(false)
 
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin(e);  // Trigger login on Enter key press
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -125,11 +131,13 @@ function Login() {
             <Stack spacing={3} marginLeft={'18%'} marginTop={'5%'}>
               <TextField id="outlined-basic" label="Username" variant="outlined" value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={handleKeyPress}
                 sx={{
                   width: '70%',
                 }} />
               <TextField id="outlined-basic" label="Password" variant="outlined" type="password" value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyPress}
                 sx={{
                   width: '70%'
                 }} />
