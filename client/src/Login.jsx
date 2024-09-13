@@ -10,8 +10,9 @@ function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
+  const [showErrorMessage, setShowErrorMessage] = useState(false)
 
-  
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -32,9 +33,12 @@ function Login() {
 
         // Navigate after setting tokens
         navigate("/overview");
+      } else {
+        setShowErrorMessage(true)
       }
     } catch (error) {
       console.log(error.message);
+      setShowErrorMessage(true)
     }
   };
 
@@ -120,15 +124,18 @@ function Login() {
             </Typography>
             <Stack spacing={3} marginLeft={'18%'} marginTop={'5%'}>
               <TextField id="outlined-basic" label="Username" variant="outlined" value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              sx={{
-                width: '70%',
-              }} />
+                onChange={(e) => setUsername(e.target.value)}
+                sx={{
+                  width: '70%',
+                }} />
               <TextField id="outlined-basic" label="Password" variant="outlined" type="password" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              sx={{
-                width: '70%'
-              }} />
+                onChange={(e) => setPassword(e.target.value)}
+                sx={{
+                  width: '70%'
+                }} />
+              {showErrorMessage && (
+                <Typography color={'red'}>Incorrect username or password</Typography>
+              )}
               <Button variant="contained" sx={{
                 width: '25%',
                 borderRadius: '20px',
