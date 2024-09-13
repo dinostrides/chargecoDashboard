@@ -153,8 +153,8 @@ CREDENTIALS ={
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=30),  # Set to 10 seconds for testing purposes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Adjust as needed
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 # settings.py
