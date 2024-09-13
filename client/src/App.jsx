@@ -7,19 +7,20 @@ import Billing from "./Billing";
 import Pricing from "./Pricing";
 import Users from "./Users";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import PrivateRoute from "./routes/PrivateRoute";
+
 
 function App() {
-
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Login></Login>}></Route>
-        <Route path="/overview" element={<Overview></Overview>}></Route>
-        <Route path="/utilisation" element={<Utilisation></Utilisation>}></Route>
-        <Route path="/bystation" element={<ByStation></ByStation>}></Route>
-        <Route path="/billing" element={<Billing></Billing>}></Route>
-        <Route path="/pricing" element={<Pricing></Pricing>}></Route>
-        <Route path="/users" element={<Users></Users>}></Route>
+        <Route path="/overview" element={<PrivateRoute><Overview></Overview></PrivateRoute>}></Route>
+        <Route path="/utilisation" element={<PrivateRoute><Utilisation></Utilisation></PrivateRoute>}></Route>
+        <Route path="/bystation" element={<PrivateRoute><ByStation></ByStation></PrivateRoute>}></Route>
+        <Route path="/billing" element={<PrivateRoute><Billing></Billing></PrivateRoute>}></Route>
+        <Route path="/pricing" element={<PrivateRoute><Pricing></Pricing></PrivateRoute>}></Route>
+        <Route path="/users" element={<PrivateRoute><Users></Users></PrivateRoute>}></Route>
       </Routes>
     </Router>
   )

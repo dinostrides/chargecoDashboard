@@ -39,7 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'rest_framework'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -138,11 +145,17 @@ CACHES = {
     }
 }
 
-CREDENITALS ={
+CREDENTIALS ={
     "username": "sd_admin_sg",
     "hashed_password": "fddd8cea6df64e39eaad86b22fc8b9faa68a2ff938522fa45dd56b411a5a2fb1"
 }
 
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 # settings.py
 
