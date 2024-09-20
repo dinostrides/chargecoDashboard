@@ -143,8 +143,7 @@ function Overview() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
-
+  }, [startDate, endDate, locationStatus, powerType, accessToken]);
 
   return (
     <div style={{ position: 'relative' }}>
