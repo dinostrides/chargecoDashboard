@@ -72,6 +72,11 @@ function Overview() {
   }
 
   useEffect(() => {
+    console.log(startDate)
+    console.log(endDate)
+  }, [startDate, endDate])
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
