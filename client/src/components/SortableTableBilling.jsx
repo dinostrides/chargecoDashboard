@@ -5,8 +5,9 @@ import {
 import { Box } from '@mui/system';
 
 function SortableTableBilling({ height, data }) {
-  const [orderDirection, setOrderDirection] = useState('asc');
-  const [orderBy, setOrderBy] = useState('evse_id');
+  const [orderDirection, setOrderDirection] = useState('desc');
+  const [orderBy, setOrderBy] = useState('total_energy');
+  
   const [maxEnergy, setMaxEnergy] = useState(0);
   const [maxRevenue, setMaxRevenue] = useState(0);
 
