@@ -31,10 +31,8 @@ function ByStation() {
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
   const [isLoading, setIsLoading] = useState(true);
-  const today = dayjs();
-  const oneYearAgo = today.subtract(1, "year");
-  const [startDate, setStartDate] = useState(oneYearAgo);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState(dayjs('2023-02-03'));
+  const [endDate, setEndDate] = useState(dayjs('2024-05-29'));
   const [location, setLocation] = useState("Blk 80 Telok Blangah MSCP (TBMT)");
   const [powerType, setPowerType] = useState("All");
 

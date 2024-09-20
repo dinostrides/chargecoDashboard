@@ -36,10 +36,9 @@ function Utilisation() {
 
   const [address, setAddress] = useState("All");
   const [charger, setCharger] = useState("All");
-  const today = dayjs();
-  const oneYearAgo = today.subtract(1, "year");
-  const [startDate, setStartDate] = useState(oneYearAgo);
-  const [endDate, setEndDate] = useState(today);
+
+  const [startDate, setStartDate] = useState(dayjs('2023-02-03'));
+  const [endDate, setEndDate] = useState(dayjs('2024-05-29'));
 
   //Cards
   const [totalChargingSessions, setTotalChargingSessions] = useState();

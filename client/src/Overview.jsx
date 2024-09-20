@@ -29,10 +29,8 @@ function Overview() {
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
-  const today = dayjs();
-  const oneYearAgo = today.subtract(1, 'year');
-  const [startDate, setStartDate] = useState(oneYearAgo);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState(dayjs('2023-02-03'));
+  const [endDate, setEndDate] = useState(dayjs('2024-05-29'));
   const [locationStatus, setLocationStatus] = useState("All");
   const [powerType, setPowerType] = useState("All");
   const [mapData, setMapData] = useState({ lat: [], lon: [], color: [] });
