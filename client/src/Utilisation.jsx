@@ -103,7 +103,9 @@ function Utilisation() {
 
         const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -115,7 +117,9 @@ function Utilisation() {
 
         const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -126,7 +130,9 @@ function Utilisation() {
 
         const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`

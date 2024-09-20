@@ -103,6 +103,24 @@ def overviewMap(request):
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
+    # Filtering on locationStatus and powerType filters
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == 'AC']
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == 'DC']
+
+    if locationStatus == "All":
+        charger_data = charger_data
+    elif locationStatus == "in_operation":
+        charger_data = charger_data[charger_data['In Operation'] == 'In Operation']
+    elif locationStatus == "coming_soon":
+        charger_data = charger_data[charger_data['In Operation'] == 'Coming Soon']
+    elif locationStatus == "no_charging_points":
+        charger_data = charger_data[pd.isna(charger_data['evCpId'])]
+    
+
     # Determine marker color based on conditions
     charger_data['marker_color'] = charger_data.apply(lambda row: 'red' if pd.isna(row['evCpId']) else 'Orange' if "Coming Soon" in str(row['name']) else 'Green', axis=1)
 
@@ -121,15 +139,29 @@ def overviewMap(request):
 @jwt_required
 def overviewRightCards(request):
     data = json.loads(request.body.decode('utf-8'))
-    locationStatus = data.get("location_status") #either "all", "coming_soon", "in_operation", "no_charging_points"
-    powerType = data.get("power_type") #either "all", "ac", "dc"
+    locationStatus = data.get("location_status") #either "All", "coming_soon", "in_operation", "no_charging_points"
+    powerType = data.get("power_type") #either "All", "AC", "DC"
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    # charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+    
+    # Filtering on locationStatus and powerType filters
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
 
-    #todo: use locationStatus and powerType to filter results then return it below as response
+    if locationStatus == "All":
+        charger_data = charger_data
+    elif locationStatus == "in_operation":
+        charger_data = charger_data[charger_data['In Operation'] == "In Operation"]
+    elif locationStatus == "coming_soon":
+        charger_data = charger_data[charger_data['In Operation'] == "Coming Soon"]
+    elif locationStatus == "no_charging_points":
+        charger_data = charger_data[pd.isna(charger_data['evCpId'])]
+
     total_locations = str(len(charger_data['name'].unique()))
     total_active_points = str(len(charger_data['evCpId'].unique()))
 
@@ -149,10 +181,22 @@ def overviewLeftCards(request):
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate and endDate
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
 
     # Load charts/data for the page
     locations_utilised = str(len(charging_transactions['Site Name'].unique()))
@@ -166,7 +210,6 @@ def overviewLeftCards(request):
 
     charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
     avg_utilisation = str(round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation),1))
-
 
     response = {
         "locations_utilised": locations_utilised,
@@ -186,10 +229,22 @@ def overviewTable(request):
     startDate = data.get("start_date")
     endDate = data.get("end_date")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate and endDate
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
 
     # Use startDate and endDate to filter data, then return it below in response
     charger_utilisation = charts_generator.create_util_table(charging_transactions, min_date, max_date, inactive_chargers)
@@ -220,11 +275,34 @@ def utilisationLeftCards(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
+    # Filter transactions based on startDate, endDate, address and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
+    
     # Calculate total number of charging sessions
     total_charging_sessions = charging_transactions['Transaction ID'].nunique()
 
@@ -258,10 +336,34 @@ def utilisationClusterMap(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate, endDate, address and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
+
 
     clustermap_markers_json_str = charts_generator.get_util_clustermap_json(charging_transactions)
     clustermap_markers_json = json.loads(clustermap_markers_json_str)
@@ -289,14 +391,50 @@ def utilisationUtilChart(request):
     if cached_data:
         return JsonResponse(cached_data, safe=False)
 
+    # Convert startDate and endDate to datetime objects (include time zone handling)
+    startDate = pd.to_datetime(startDate, errors='coerce', utc=True)  # Handle timezone-aware datetime
+    endDate = pd.to_datetime(endDate, errors='coerce', utc=True)
+
+    startDate = startDate.tz_localize(None)
+    endDate = endDate.tz_localize(None)
+
+    #start date end date logged as 2023-09-20 03:58:35.879000 2024-09-20 03:58:35.879000
+
+    # Check if either startDate or endDate failed to convert
+    if pd.isna(startDate) or pd.isna(endDate):
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+    
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
 
+    # Ensure the 'Start Date/Time' column is of the correct datetime type
+    charging_transactions['Start Date/Time'] = pd.to_datetime(charging_transactions['Start Date/Time'], errors='coerce').dt.tz_localize(None)
+    # Filter transactions based on startDate, endDate, address and charger
+
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+
+    #charging_transactions data here is still valid dataframe
+    
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
+
     # Generate the utilisation hourly chart data
+    #charging transactions here is empty dataframe
     utilisation_hourly_chart_data_json_str = charts_generator.util_hour_chart_json(charging_transactions)
     utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
 
+    #doesn't get to this line
     response = {
         'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
@@ -323,11 +461,32 @@ def utilisationBarChart(request):
     if cached_data:
         return JsonResponse(cached_data, safe=False)
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter transactions based on startDate, endDate, address and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
+    
 
     util_dayNight_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
     util_weekdayWeekend_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
@@ -359,20 +518,41 @@ def byStationCards(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"stationcards_{startDate}_{endDate}_{location}_{powerType}"
+
+    # Load cached data if available
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data, safe=False)
+    
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     inactive_chargers = data_loader.load_inactive_chargers()
 
-    # Get the selected site name from location
+    # Filter transactions based on startDate, endDate, location and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
     selected_site_name = location
-
-    # Filter the data based on the selected site name
     if selected_site_name:
         filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
     else:
-        # filtered_transactions = pd.DataFrame()  # Create an empty DataFrame to avoid errors
-        filtered_transactions = charging_transactions  # If no site is selected, show all data
+        filtered_transactions = charging_transactions  
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
 
     # Creat df for filtered transactions (['Charger ID', 'Utilisation Rate'])
     charger_utilisation = charts_generator.create_util_table(filtered_transactions, min_date, max_date, inactive_charger_dict=inactive_chargers)
@@ -389,12 +569,14 @@ def byStationCards(request):
         avg_price = round(sum(prices)/len(prices), 2)
         avg_util = round(sum(charger_utilisation['Utilisation Rate'])/len(charger_utilisation), 2)
 
-
     response = {
         'num_chargers': num_chargers,
         'avg_price': avg_price,
         'avg_util': avg_util
     }    
+
+    # Cache the response data for future requests
+    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -408,8 +590,16 @@ def byStationHour(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-     # Load cached data if available
-    cache_key = "by_station_hour"
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"stationhour_{startDate}_{endDate}_{location}_{powerType}"
+
+    # Load cached data if available
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
@@ -417,16 +607,23 @@ def byStationHour(request):
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
-    # Get the selected site name from location filter
+    # Filter transactions based on startDate, endDate, location and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
     selected_site_name = location
-
-    # Filter the data based on the selected site name
     if selected_site_name:
         filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
     else:
-        filtered_transactions = charging_transactions  # If no site is selected, show all data
+        filtered_transactions = charging_transactions  
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
 
     station_hour_str = charts_generator.station_hour_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
     station_hour = json.loads(station_hour_str)
@@ -450,8 +647,16 @@ def byStationTimeSeriesChart(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"stationtimeseries_{startDate}_{endDate}_{location}_{powerType}"
+
     # Load cached data if available
-    cache_key = "timeseries"
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
@@ -459,17 +664,23 @@ def byStationTimeSeriesChart(request):
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
 
-    # # Get the selected site name from the GET parameters
+    # Filter transactions based on startDate, endDate, location and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
     selected_site_name = location
-
-    # Filter the data based on the selected site name
     if selected_site_name:
         filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
     else:
-        filtered_transactions = charging_transactions  # If no site is selected, show all data
-
+        filtered_transactions = charging_transactions  
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
     util_timeseries_str = charts_generator.util_timeseries_chart_json(filtered_transactions, start_date=min_date, end_date=max_date)
     util_timeseries = json.loads(util_timeseries_str)
     
@@ -492,27 +703,39 @@ def byStationUtilBarChart(request):
     location = data.get("location")
     powerType = data.get("power_type")
 
-     # Load cached data if available
-    cache_key = "bystation_util_barchart"
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
+    # Generate a unique cache key based on filters
+    cache_key = f"stationbarchart_{startDate}_{endDate}_{location}_{powerType}"
+
+    # Load cached data if available
     cached_data = cache.get(cache_key)
     if cached_data:
         return JsonResponse(cached_data, safe=False)
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
-    # Get unique site names for the dropdown filter
-    site_names = charging_transactions['Site Name'].unique()
-
-    # Get the selected site name from the GET parameters
+    # Filter transactions based on startDate, endDate, location and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
     selected_site_name = location
-
-    # Filter the data based on the selected site name
     if selected_site_name:
         filtered_transactions = charging_transactions[charging_transactions['Site Name'] == selected_site_name]
     else:
-        filtered_transactions = charging_transactions  # If no site is selected, show all data
+        filtered_transactions = charging_transactions  
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
 
     util_dayNight_str = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
     util_weekdayWeekend_str = charts_generator.util_bar_chart_json(filtered_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
@@ -525,8 +748,9 @@ def byStationUtilBarChart(request):
         'util_weekdayWeekend': util_weekdayWeekend
     }    
 
-    # Cache the response data for future requests
+    # # Cache the response data for future requests
     cache.set(cache_key, response, timeout=3000)
+    
     return JsonResponse(response, safe=False)
 
 ###########################################################
@@ -544,8 +768,20 @@ def billingCards(request):
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on powerType, price, and charger
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if price != "All":
+        charger_data = charger_data[charger_data['price'] == price]
+    if charger == "All":
+        charger_data = charger_data
+    else:
+        charger_data = charger_data[charger_data['evCpId'] == charger]
 
     # Calculating average energy per month
     total_energy = sum(charger_charging['total_energy'])
@@ -575,8 +811,20 @@ def billingTable(request):
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on powerType, price, and charger
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if price != "All":
+        charger_data = charger_data[charger_data['price'] == price]
+    if charger == "All":
+        charger_data = charger_data
+    else:
+        charger_data = charger_data[charger_data['evCpId'] == charger]
 
     energy_expenditure_df_str = charts_generator.energy_expenditure_table_json(charger_charging)
     energy_expenditure_df = json.loads(energy_expenditure_df_str)
@@ -592,14 +840,26 @@ def billingTable(request):
 @jwt_required
 def billingRevenueChart(request):
     data = json.loads(request.body.decode('utf-8'))
-    # powerType = data.get("power_type")
-    # price = data.get("price")
-    # charger = data.get("charger")
+    powerType = data.get("power_type")
+    price = data.get("price")
+    charger = data.get("charger")
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    # charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on powerType, price, and charger
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if price != "All":
+        charger_data = charger_data[charger_data['price'] == price]
+    if charger == "All":
+        charger_data = charger_data
+    else:
+        charger_data = charger_data[charger_data['evCpId'] == charger]
 
     total_energy_cost_str = charts_generator.total_energy_cost_chart_json(charger_charging)
     total_energy_cost = json.loads(total_energy_cost_str)
@@ -621,8 +881,20 @@ def billingEnergyChart(request):
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on powerType, price, and charger
+    if powerType == "All":
+        charger_data = charger_data
+    elif powerType == "AC":
+        charger_data = charger_data[charger_data['power_type'] == "AC"]
+    elif powerType == "DC":
+        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if price != "All":
+        charger_data = charger_data[charger_data['price'] == price]
+    if charger == "All":
+        charger_data = charger_data
+    else:
+        charger_data = charger_data[charger_data['evCpId'] == charger]
 
     total_monthly_charger_str = charts_generator.monthly_energy_consumption_chart_json(charger_charging)
     total_monthly_charger = json.loads(total_monthly_charger_str)
@@ -645,12 +917,29 @@ def pricingCards(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    powerType = data.get("power_type")
+
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on startDate, endDate, and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if powerType == "All":
+        charging_transactions = charging_transactions
+    elif powerType == "AC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "AC"]
+    elif powerType == "DC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "DC"]
 
     # Calculating average rate
     avg_price = round(sum(charging_transactions['Rate'])/len(charging_transactions), 2)
@@ -669,12 +958,29 @@ def pricingPaymentModeChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    powerType = data.get("power_type")
+
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on startDate, endDate, and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if powerType == "All":
+        charging_transactions = charging_transactions
+    elif powerType == "AC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "AC"]
+    elif powerType == "DC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "DC"]
 
     # Payment mode data points
     payment_mode_donut_str = charts_generator.payment_mode_donut_chart_json(charging_transactions)
@@ -694,12 +1000,29 @@ def pricingUtilisationPriceChart(request):
     data = json.loads(request.body.decode('utf-8'))
     startDate = data.get("start_date") #when date is logged it looks like this - 2023-08-24T05:52:25.000Z
     endDate = data.get("end_date")
-    #todo: add address + chargerid filter
+    powerType = data.get("power_type")
+
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on startDate, endDate, and powerType
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if powerType == "All":
+        charging_transactions = charging_transactions
+    elif powerType == "AC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "AC"]
+    elif powerType == "DC":
+        charging_transactions = charging_transactions[charging_transactions['power_type'] == "DC"]
 
     # Payment mode data points
     util_price_chart_str = charts_generator.get_util_price_chart_json(charging_transactions)
@@ -725,11 +1048,30 @@ def usersCards(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
 
+    # Filter charger_data based on startDate, address, and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
+    
     # User Breakdown
     num_public = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Public']['User ID'].dropna()))
     num_fleet = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Fleet']['User ID'].dropna()))
@@ -757,10 +1099,29 @@ def usersDonutCharts(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on startDate, address, and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
 
     user_donut_str = charts_generator.user_donut_chart_json(charging_transactions)
     fleet_donut_str = charts_generator.fleet_donut_chart_json(charging_transactions)
@@ -794,10 +1155,29 @@ def usersUserChart(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
-    # inactive_chargers = data_loader.load_inactive_chargers()
+
+    # Filter charger_data based on startDate, address, and charger
+    charging_transactions = charging_transactions[
+        (charging_transactions['Start Date/Time'] >= startDate) &
+        (charging_transactions['Start Date/Time'] <= endDate)
+    ]
+    if address == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['address'] == address]
+    if charger == "All":
+        charging_transactions = charging_transactions
+    else:
+        charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
 
     user_across_time_chart = charts_generator.user_across_time_json(charging_transactions)
 
@@ -806,3 +1186,4 @@ def usersUserChart(request):
     }
 
     return JsonResponse(response, safe=False)
+
