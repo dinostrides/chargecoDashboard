@@ -1099,6 +1099,9 @@ def usersDonutCharts(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    print(type(address),flush=True)
+    print(type(charger),flush=True)
+
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
     endDate = pd.to_datetime(endDate, errors='coerce')
@@ -1114,11 +1117,13 @@ def usersDonutCharts(request):
         (charging_transactions['Start Date/Time'] >= startDate) &
         (charging_transactions['Start Date/Time'] <= endDate)
     ]
-    if address == "All":
+
+    if address == 'All':
         charging_transactions = charging_transactions
     else:
         charging_transactions = charging_transactions[charging_transactions['address'] == address]
-    if charger == "All":
+
+    if charger == 'All':
         charging_transactions = charging_transactions
     else:
         charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
