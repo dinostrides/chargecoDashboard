@@ -72,6 +72,11 @@ function Overview() {
   }
 
   useEffect(() => {
+    console.log(startDate)
+    console.log(endDate)
+  }, [startDate, endDate])
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
@@ -143,8 +148,7 @@ function Overview() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
-
+  }, [startDate, endDate, locationStatus, powerType, accessToken]);
 
   return (
     <div style={{ position: 'relative' }}>

@@ -107,7 +107,7 @@ function Pricing() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, powerType, accessToken]);
 
 
 
@@ -231,6 +231,7 @@ function Pricing() {
                         id: v['Charger ID'],
                       }))
                       : [],
+                      color: '#001c71'
                   },
                 ]}
               />

@@ -216,9 +216,21 @@ def get_util_clustermap_json(charger_charging):
 
     charger_utilisation = charger_times.copy()
     charger_utilisation.columns = ['Charger ID', 'Total Time', 'Latitude', 'Longitude', 'Time Period']
+
+    # Ensure Time Period contains valid timedelta values
+    charger_utilisation['Time Period'] = pd.to_timedelta(charger_utilisation['Time Period'], errors='coerce')
+
+    # Convert the timedelta to minutes
     charger_utilisation['Time Period'] = charger_utilisation['Time Period'].dt.total_seconds() / 60
+    
+    # Ensure Time Period is never zero to avoid division by zero
     charger_utilisation['Time Period'] = np.where(charger_utilisation['Time Period'] == 0, 1440, charger_utilisation['Time Period'])
-    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(lambda x: (x['Total Time'] / x['Time Period']) * 100, axis=1)
+    
+    # Calculate Utilisation Rate
+    charger_utilisation["Utilisation Rate"] = charger_utilisation.apply(
+        lambda x: (x['Total Time'] / x['Time Period']) * 100, axis=1
+    )
+    
     charger_utilisation = charger_utilisation.sort_values(by='Utilisation Rate', ascending=False)
 
     # Prepare data for JSON
@@ -292,6 +304,75 @@ def get_util_hour_df(charging):
 
     return pivot_df
 
+# Utilisation Line Charts
+def get_util_hour_df_util(charging):
+    def expand_transactions(charging):
+        rows = []
+        for _, row in charging.iterrows():
+            start_time = row['Start Date/Time']
+            end_time = row['End Date/Time']
+            station_id = row['Station ID']
+            
+            # Skip rows with NaT for start_time or end_time
+            if pd.isna(start_time) or pd.isna(end_time):
+                continue
+            
+            # Loop through each hour in the range
+            current_time = start_time.replace(minute=0, second=0, microsecond=0)
+            while current_time <= end_time.replace(minute=0, second=0, microsecond=0):
+                if current_time == start_time.replace(minute=0, second=0, microsecond=0):
+                    start_minute = start_time.minute
+                else:
+                    start_minute = 0
+
+                if current_time == end_time.replace(minute=0, second=0, microsecond=0):
+                    end_minute = end_time.minute
+                else:
+                    end_minute = 59
+
+                utilisation = (end_minute - start_minute + 1) / 60  # utilisation for the hour
+                rows.append({
+                    'Hour': current_time,
+                    'Station ID': station_id,
+                    'Utilisation': utilisation
+                })
+                
+                # Move to the next hour
+                current_time += pd.Timedelta(hours=1)
+        
+        return pd.DataFrame(rows)
+
+    def ensure_all_hours(charging, expanded_df):
+        # Filter out rows with NaT in 'Start Date/Time' or 'End Date/Time'
+        charging = charging.dropna(subset=['Start Date/Time', 'End Date/Time'])
+        
+        all_hours = pd.date_range(start=charging['Start Date/Time'].min().replace(minute=0, second=0, microsecond=0), 
+                                  end=charging['End Date/Time'].max().replace(minute=0, second=0, microsecond=0), 
+                                  freq='H')
+        unique_stations = charging['Station ID'].unique()
+        all_combinations = pd.MultiIndex.from_product([all_hours, unique_stations], names=['Hour', 'Station ID']).to_frame(index=False)
+        merged_df = pd.merge(all_combinations, expanded_df, on=['Hour', 'Station ID'], how='left').fillna(0)
+        return merged_df
+
+    # Remove any rows where 'Start Date/Time' or 'End Date/Time' is NaT
+    charging = charging.dropna(subset=['Start Date/Time', 'End Date/Time'])
+
+    expanded_df = expand_transactions(charging)
+    util_hour_df = ensure_all_hours(charging, expanded_df)
+
+    # Convert 'Hour' column to just the hour of the day
+    util_hour_df['Hour'] = util_hour_df['Hour'].dt.hour
+
+    # Group by 'Hour' and 'Station ID' to calculate mean utilisation
+    util_hour_df = util_hour_df.groupby(['Hour', 'Station ID']).agg(
+        Utilisation=('Utilisation', 'mean')
+    ).reset_index()
+
+    # Create a pivot table to display utilisation by hour and station
+    pivot_df = util_hour_df.pivot(index='Hour', columns='Station ID', values='Utilisation').fillna(0).reset_index()
+
+    return pivot_df
+
 # Utilisation Hourly Chart (UNUSED)
 def util_hour_chart(charging, start_date=min_date, end_date=max_date):
     pivot_df_reset = get_util_hour_df(charging)
@@ -315,9 +396,9 @@ def util_hour_chart(charging, start_date=min_date, end_date=max_date):
     return fig
 
 # Utilisation Hourly Chart Data Points to JSON
-def util_hour_chart_json(charging, start_date=min_date, end_date=max_date):
+def util_hour_chart_json(charging):
     # Prepare the data for plotting
-    pivot_df_reset = get_util_hour_df(charging)
+    pivot_df_reset = get_util_hour_df_util(charging)
     pivot_df_reset['Average Utilisation'] = pivot_df_reset.iloc[:, 1:].mean(axis=1)
     pivot_df_reset = pivot_df_reset[['Hour', 'Average Utilisation']]
 
@@ -1187,7 +1268,6 @@ def user_across_time(charging_transactions):
 
     return fig
 
-# User Across Time Chart to JSON
 def user_across_time_json(charging_transactions):
     # Remove duplicate entries based on 'User ID' and 'Month'
     charging_transactions = charging_transactions.drop_duplicates(subset=['User ID', 'Month'])
@@ -1195,11 +1275,14 @@ def user_across_time_json(charging_transactions):
     # Group by 'Month' and 'User Type Cleaned', then count the occurrences
     grouped_data = charging_transactions.groupby(['Month', 'User Type Cleaned']).size().reset_index(name='Count')
 
-    # Pivot the DataFrame to have 'Month' as index and 'User Type Cleaned' as columns, filling NaN with 0
-    pivot_df = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0).reset_index()
+    # Pivot the table so each user type is a separate column
+    pivot_data = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0)
+
+    # Reset the index to make 'Month' a column again
+    pivot_data = pivot_data.reset_index()
 
     # Convert to JSON format
-    data_json = pivot_df.to_json()
+    data_json = pivot_data.to_json(orient='records', date_format = 'iso')
 
     return data_json
 

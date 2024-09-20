@@ -36,8 +36,10 @@ function Utilisation() {
 
   const [address, setAddress] = useState("All");
   const [charger, setCharger] = useState("All");
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, "year");
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
 
   //Cards
   const [totalChargingSessions, setTotalChargingSessions] = useState();
@@ -101,7 +103,9 @@ function Utilisation() {
 
         const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -113,7 +117,9 @@ function Utilisation() {
 
         const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -124,7 +130,9 @@ function Utilisation() {
 
         const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          address: address,
+          charger: charger
         },{
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -157,7 +165,7 @@ function Utilisation() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, address, charger, accessToken]);
 
 
 
@@ -320,7 +328,7 @@ function Utilisation() {
                     data: seriesData,
                     area: true,
                     label: "Average Utilisation Rate (%)",
-                    color: "#99c99e"
+                    color: "#abca54"
                   },
                 ]}
                 height={400}
@@ -350,7 +358,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: '#99c99e' },
+                            { data: [avgUtilisationDay, avgUtilisationNight], label: 'Average Utilisation (%)', color: '#abca54' },
                           ]}
                           xAxis={[
                             {
@@ -383,7 +391,7 @@ function Utilisation() {
                       >
                         <BarChart
                           series={[
-                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: '#99c99e' },
+                            { data: [avgUtilisationWeekday, avgUtilisationWeekend], label: 'Average Utilisation (%)', color: '#abca54' },
                           ]}
                           xAxis={[
                             {

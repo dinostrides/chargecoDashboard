@@ -177,7 +177,7 @@ function ByStation() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, location, powerType, accessToken]);
 
 
 
@@ -355,7 +355,7 @@ function ByStation() {
                 {
                   data: seriesDataHour,
                   label: "Average Utilisation Per Hour(%)",
-                  color: "#99c99e",
+                  color: "#abca54",
                 },
               ]}
               height={700}
@@ -393,6 +393,7 @@ function ByStation() {
               series={[
                 {
                   data: yData,
+                  color: '#001c71'
                 },
               ]}
               grid={{ vertical: true, horizontal: true }}
@@ -406,7 +407,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationDay, avgUtilisationNight],
                   label: "Average Utilisation (%)",
-                  color: "#99c99e",
+                  color: "#abca54",
                 },
               ]}
               xAxis={[
@@ -424,7 +425,7 @@ function ByStation() {
                 {
                   data: [avgUtilisationWeekday, avgUtilisationWeekend],
                   label: "Average Utilisation (%)",
-                  color: "#99c99e",
+                  color: "#abca54",
                 },
               ]}
               xAxis={[
