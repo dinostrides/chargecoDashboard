@@ -5,8 +5,9 @@ import {
 import { Box } from '@mui/system';
 
 function SortableTableOverview({ height, data }) {
-  const [orderDirection, setOrderDirection] = useState('asc');
-  const [orderBy, setOrderBy] = useState('chargerId');
+  const [orderDirection, setOrderDirection] = useState('desc');
+  const [orderBy, setOrderBy] = useState('utilizationRate');
+
   const [maxUtilizationRate, setMaxUtilizationRate] = useState(0);
 
   const handleSortRequest = (property) => {
