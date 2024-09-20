@@ -353,7 +353,7 @@ def utilisationClusterMap(request):
         (charging_transactions['Start Date/Time'] >= startDate) &
         (charging_transactions['Start Date/Time'] <= endDate)
     ]
-    
+
     if address == "All":
         charging_transactions = charging_transactions
     else:
@@ -363,7 +363,8 @@ def utilisationClusterMap(request):
         charging_transactions = charging_transactions
     else:
         charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
-    
+
+
     clustermap_markers_json_str = charts_generator.get_util_clustermap_json(charging_transactions)
     clustermap_markers_json = json.loads(clustermap_markers_json_str)
 
@@ -397,6 +398,8 @@ def utilisationUtilChart(request):
     startDate = startDate.tz_localize(None)
     endDate = endDate.tz_localize(None)
 
+    #start date end date logged as 2023-09-20 03:58:35.879000 2024-09-20 03:58:35.879000
+
     # Check if either startDate or endDate failed to convert
     if pd.isna(startDate) or pd.isna(endDate):
         return JsonResponse({'error': 'Invalid date format'}, status=400)
@@ -408,10 +411,13 @@ def utilisationUtilChart(request):
     # Ensure the 'Start Date/Time' column is of the correct datetime type
     charging_transactions['Start Date/Time'] = pd.to_datetime(charging_transactions['Start Date/Time'], errors='coerce').dt.tz_localize(None)
     # Filter transactions based on startDate, endDate, address and charger
+
     charging_transactions = charging_transactions[
         (charging_transactions['Start Date/Time'] >= startDate) &
         (charging_transactions['Start Date/Time'] <= endDate)
     ]
+
+    #charging_transactions data here is still valid dataframe
     
     if address == "All":
         charging_transactions = charging_transactions
@@ -422,13 +428,13 @@ def utilisationUtilChart(request):
         charging_transactions = charging_transactions
     else:
         charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
-    
-    print(charging_transactions.dtypes)
 
     # Generate the utilisation hourly chart data
+    #charging transactions here is empty dataframe
     utilisation_hourly_chart_data_json_str = charts_generator.util_hour_chart_json(charging_transactions)
     utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
 
+    #doesn't get to this line
     response = {
         'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
