@@ -177,7 +177,7 @@ function ByStation() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, location, powerType, accessToken]);
 
 
 

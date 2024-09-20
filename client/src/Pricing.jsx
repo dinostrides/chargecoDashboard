@@ -107,7 +107,7 @@ function Pricing() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, powerType, accessToken]);
 
 
 
