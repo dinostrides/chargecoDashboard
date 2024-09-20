@@ -264,8 +264,8 @@ function Billing() {
             <Grid item xs={12} md={12} lg={12}>
               <BarChart
                 series={[
-                  { data: totalEnergies, label: 'Energy Consumption (kWh)' },
-                  { data: totalRevenue, label: 'Revenue ($)' },
+                  { data: totalEnergies, label: 'Energy Consumption (kWh)', color: '#001c71' },
+                  { data: totalRevenue, label: 'Revenue ($)', color: '#abca54' },
                 ]}
                 xAxis={[
                   {

@@ -231,6 +231,7 @@ function Pricing() {
                         id: v['Charger ID'],
                       }))
                       : [],
+                      color: '#001c71'
                   },
                 ]}
               />

@@ -22,8 +22,10 @@ function Users() {
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
   const [address, setAddress] = useState("All");
   const [charger, setCharger] = useState("All");
   const [pieChartDataUser, setPieChartDataUser] = useState();
