@@ -46,9 +46,9 @@ const LeafletMap = ({ lat = [], lon = [], color = [] }) => {
             iconSize: [20, 20],
           })}
         >
-          <Popup>
+          {/* <Popup>
             Marker {index + 1}
-          </Popup>
+          </Popup> */}
         </Marker>
       ))}
     </MapContainer>

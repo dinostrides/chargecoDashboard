@@ -1,8 +1,9 @@
 from django.urls import path
-
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
 urlpatterns = [
+    path('login/', views.login),
     path('overviewMap/', views.overviewMap),
     path('overviewRightCards/', views.overviewRightCards),
     path('overviewLeftCards/', views.overviewLeftCards),
@@ -23,5 +24,7 @@ urlpatterns = [
     path('billingEnergyChart/', views.billingEnergyChart),
     path('usersDonutCharts/', views.usersDonutCharts),
     path('usersCards/', views.usersCards),
-    path('billingCards/', views.billingCards)
+    path('billingCards/', views.billingCards),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/validate-token/', views.validate_token, name='validate_token'),
 ]

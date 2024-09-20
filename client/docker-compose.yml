@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Ensure the file name matches exactly (Dockerfile with a capital D)
+    ports:
+      - "5173:80"

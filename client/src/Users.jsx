@@ -17,9 +17,15 @@ import './lineGraph.css';
 import chargers from "./datasets/chargers.json";
 
 function Users() {
+
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
+
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(dayjs("2022-04-17"));
-  const [endDate, setEndDate] = useState(dayjs("2022-04-17"));
+  const today = dayjs();
+  const oneYearAgo = today.subtract(1, 'year');
+  const [startDate, setStartDate] = useState(oneYearAgo);
+  const [endDate, setEndDate] = useState(today);
   const [address, setAddress] = useState("All");
   const [charger, setCharger] = useState("All");
   const [pieChartDataUser, setPieChartDataUser] = useState();
@@ -63,16 +69,32 @@ function Users() {
   };
 
 
+  const refreshAccessToken = async (refreshToken) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        refresh: refreshToken
+      });
+      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
+        
         const userCards = await axios.post("http://localhost:8000/usersCards/", {
           start_date: startDate,
           end_date: endDate,
           address: address,
           charger: charger
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         setTotalUsersCard(userCards.data.num_total)
@@ -88,6 +110,10 @@ function Users() {
           end_date: endDate,
           address: address,
           charger: charger
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
         })
 
         setPieChartDataUser(allData.data.user_donut)
@@ -98,18 +124,29 @@ function Users() {
         setMemberOverTime(Object.values(allData.data.user_across_time_chart.Member))
         setPartnerOverTime(Object.values(allData.data.user_across_time_chart.Partner))
         setPublicOverTime(Object.values(allData.data.user_across_time_chart.Public))
-        
+
+      } catch (error) {
+        if (error.response?.data?.detail === "Invalid or expired token") {
+          try {
+            const { access } = await refreshAccessToken(refreshToken);
+            localStorage.setItem('accessToken', access);
+            setAccessToken(access);
+          } catch (refreshError) {
+            console.error('Failed to refresh token and retry API call', refreshError);
+            // Handle token refresh failure (e.g., redirect to login)
+          }
+        } else {
+          console.error('API request failed', error);
+        }
+      } finally {
+        setIsLoading(false);
       }
-      catch (error) {
-        console.log(error.message)
-      }
-      finally {
-        setIsLoading(false); // Ensure this is executed even if there's an error
-      }
-    }
+    };
+
     fetchData();
-    console.log(startDate.$d)
-  }, [startDate, endDate, address, charger])
+  }, [startDate, endDate, accessToken]);
+
+
 
   return (
     <div style={{ position: 'relative' }}>
