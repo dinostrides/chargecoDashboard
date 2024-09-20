@@ -32,6 +32,8 @@ function Users() {
   const [pieChartDataFleet, setPieChartDataFleet] = useState();
   const [pieChartDataMember, setPieChartDataMember] = useState();
   const [pieChartDataPartner, setPieChartDataPartner] = useState();
+
+  const [months, setMonths] = useState([]);
   const [fleetOverTime, setFleetOverTime] = useState([]);
   const [memberOverTime, setMemberOverTime] = useState([]);
   const [partnerOverTime, setPartnerOverTime] = useState([]);
@@ -63,11 +65,6 @@ function Users() {
     setCharger(event.target.value);
   }
   
-  const truncateLabel = (label, maxLength) => {
-    if (label.length <= maxLength) return label;
-    return label.slice(0, maxLength) + '...'; // Add ellipsis if truncating
-  };
-
 
   const refreshAccessToken = async (refreshToken) => {
     try {
@@ -120,10 +117,17 @@ function Users() {
         setPieChartDataFleet(allData.data.fleet_donut)
         setPieChartDataMember(allData.data.member_donut)
         setPieChartDataPartner(allData.data.partner_donut)
-        setFleetOverTime(Object.values(allData.data.user_across_time_chart.Fleet))
-        setMemberOverTime(Object.values(allData.data.user_across_time_chart.Member))
-        setPartnerOverTime(Object.values(allData.data.user_across_time_chart.Partner))
-        setPublicOverTime(Object.values(allData.data.user_across_time_chart.Public))
+
+        const monthsData = allData.data.user_across_time_chart.map((data) => {
+          return (data.Month).slice(0,7)
+        });
+
+        setMonths(monthsData);
+
+        setFleetOverTime(allData.data.user_across_time_chart.map((data) => data.Fleet));
+        setMemberOverTime(allData.data.user_across_time_chart.map((data) => data.Member))
+        setPartnerOverTime(allData.data.user_across_time_chart.map((data) => data.Partner))
+        setPublicOverTime(allData.data.user_across_time_chart.map((data) => data.Public))
 
       } catch (error) {
         if (error.response?.data?.detail === "Invalid or expired token") {
@@ -144,7 +148,7 @@ function Users() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, address, charger, accessToken]);
 
 
 
@@ -425,7 +429,7 @@ function Users() {
             <Grid item xs={12} md={12} lg={12}>
             <div className="custom-y-padding-bottom">
       <LineChart
-        xAxis={[{ data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] }]}
+        xAxis={[{ data: months, scaleType: "band", }]}
         series={[
           { data: fleetOverTime, label: "Fleet" },
           { data: memberOverTime, label: "Member" },

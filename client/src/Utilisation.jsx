@@ -165,7 +165,7 @@ function Utilisation() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [startDate, endDate, address, charger, accessToken]);
 
 
 

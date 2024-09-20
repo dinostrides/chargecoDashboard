@@ -17,10 +17,6 @@ function Billing() {
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
   const [isLoading, setIsLoading] = useState(true);
-  const today = dayjs();
-  const oneYearAgo = today.subtract(1, 'year');
-  const [startDate, setStartDate] = useState(oneYearAgo);
-  const [endDate, setEndDate] = useState(today);
 
   const [powerType, setPowerType] = useState("All");
   const [price, setPrice] = useState("All");
@@ -139,7 +135,7 @@ function Billing() {
     };
 
     fetchData();
-  }, [startDate, endDate, accessToken]);
+  }, [powerType, price, charger, accessToken]);
 
 
 
