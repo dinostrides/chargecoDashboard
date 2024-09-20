@@ -1268,7 +1268,6 @@ def user_across_time(charging_transactions):
 
     return fig
 
-# User Across Time Chart to JSON
 def user_across_time_json(charging_transactions):
     # Remove duplicate entries based on 'User ID' and 'Month'
     charging_transactions = charging_transactions.drop_duplicates(subset=['User ID', 'Month'])
@@ -1276,11 +1275,14 @@ def user_across_time_json(charging_transactions):
     # Group by 'Month' and 'User Type Cleaned', then count the occurrences
     grouped_data = charging_transactions.groupby(['Month', 'User Type Cleaned']).size().reset_index(name='Count')
 
-    # Pivot the DataFrame to have 'Month' as index and 'User Type Cleaned' as columns, filling NaN with 0
-    pivot_df = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0).reset_index()
+    # Pivot the table so each user type is a separate column
+    pivot_data = grouped_data.pivot(index='Month', columns='User Type Cleaned', values='Count').fillna(0)
+
+    # Reset the index to make 'Month' a column again
+    pivot_data = pivot_data.reset_index()
 
     # Convert to JSON format
-    data_json = pivot_df.to_json()
+    data_json = pivot_data.to_json(orient='records', date_format = 'iso')
 
     return data_json
 
