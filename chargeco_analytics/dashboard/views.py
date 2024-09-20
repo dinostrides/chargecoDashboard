@@ -356,18 +356,23 @@ def utilisationUtilChart(request):
     if cached_data:
         return JsonResponse(cached_data, safe=False)
 
-    # Convert startDate and endDate to datetime objects
-    startDate = pd.to_datetime(startDate, errors='coerce')
-    endDate = pd.to_datetime(endDate, errors='coerce')
-    startDate = startDate.strftime('%d/%m/%Y %H:%M')
-    endDate = endDate.strftime('%d/%m/%Y %H:%M')
-    startDate = pd.to_datetime(startDate, errors='coerce')
-    endDate = pd.to_datetime(endDate, errors='coerce')
+    # Convert startDate and endDate to datetime objects (include time zone handling)
+    startDate = pd.to_datetime(startDate, errors='coerce', utc=True)  # Handle timezone-aware datetime
+    endDate = pd.to_datetime(endDate, errors='coerce', utc=True)
 
+    startDate = startDate.tz_localize(None)
+    endDate = endDate.tz_localize(None)
+
+    # Check if either startDate or endDate failed to convert
+    if pd.isna(startDate) or pd.isna(endDate):
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+    
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
 
+    # Ensure the 'Start Date/Time' column is of the correct datetime type
+    charging_transactions['Start Date/Time'] = pd.to_datetime(charging_transactions['Start Date/Time'], errors='coerce').dt.tz_localize(None)
     # Filter transactions based on startDate, endDate, address and charger
     charging_transactions = charging_transactions[
         (charging_transactions['Start Date/Time'] >= startDate) &
@@ -384,6 +389,8 @@ def utilisationUtilChart(request):
     else:
         charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
     
+    print(charging_transactions.dtypes)
+
     # Generate the utilisation hourly chart data
     utilisation_hourly_chart_data_json_str = charts_generator.util_hour_chart_json(charging_transactions)
     utilisation_hourly_chart_data_json = json.loads(utilisation_hourly_chart_data_json_str)
@@ -418,8 +425,6 @@ def utilisationBarChart(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
-    startDate = pd.to_datetime(startDate, errors='coerce')
-    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -1092,6 +1097,12 @@ def usersDonutCharts(request):
     address = data.get("address")
     charger = data.get("charger")
 
+    # Convert startDate and endDate to datetime objects
+    startDate = pd.to_datetime(startDate, errors='coerce')
+    endDate = pd.to_datetime(endDate, errors='coerce')
+    startDate = startDate.strftime('%d/%m/%Y %H:%M')
+    endDate = endDate.strftime('%d/%m/%Y %H:%M')
+
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -1173,39 +1184,39 @@ def usersUserChart(request):
 
     return JsonResponse(response, safe=False)
 
-@require_GET
-@login_required
-def users(request):
-    # Load data
-    charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
-    charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
+# @require_GET
+# @login_required
+# def users(request):
+#     # Load data
+#     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
+#     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
     
-    # User Breakdown
-    num_public = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Public']['User ID'].dropna()))
-    num_fleet = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Fleet']['User ID'].dropna()))
-    num_member = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Member']['User ID'].dropna()))
-    num_partner = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Partner']['User ID'].dropna()))
-    num_total = len(set(charging_transactions['User ID'].dropna()))
+#     # User Breakdown
+#     num_public = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Public']['User ID'].dropna()))
+#     num_fleet = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Fleet']['User ID'].dropna()))
+#     num_member = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Member']['User ID'].dropna()))
+#     num_partner = len(set(charging_transactions[charging_transactions['User Type Cleaned'] == 'Partner']['User ID'].dropna()))
+#     num_total = len(set(charging_transactions['User ID'].dropna()))
 
-    # Data Visualisations
-    user_donut = charts_generator.user_donut_chart(charging_transactions)._repr_html_()
-    fleet_donut = charts_generator.fleet_donut_chart(charging_transactions)._repr_html_()
-    member_donut = charts_generator.member_donut_chart(charging_transactions)._repr_html_()
-    partner_donut = charts_generator.partner_donut_chart(charging_transactions)._repr_html_()
-    user_across_time_chart = charts_generator.user_across_time(charging_transactions)._repr_html_()
+#     # Data Visualisations
+#     user_donut = charts_generator.user_donut_chart(charging_transactions)._repr_html_()
+#     fleet_donut = charts_generator.fleet_donut_chart(charging_transactions)._repr_html_()
+#     member_donut = charts_generator.member_donut_chart(charging_transactions)._repr_html_()
+#     partner_donut = charts_generator.partner_donut_chart(charging_transactions)._repr_html_()
+#     user_across_time_chart = charts_generator.user_across_time(charging_transactions)._repr_html_()
 
 
-    context = {
-        'num_public': num_public,
-        'num_fleet': num_fleet,
-        'num_member': num_member,
-        'num_partner': num_partner,
-        'num_total': num_total,
-        'user_donut': user_donut,
-        'fleet_donut': fleet_donut,
-        'member_donut': member_donut,
-        'partner_donut': partner_donut,
-        'user_across_time_chart': user_across_time_chart
-    }
+#     context = {
+#         'num_public': num_public,
+#         'num_fleet': num_fleet,
+#         'num_member': num_member,
+#         'num_partner': num_partner,
+#         'num_total': num_total,
+#         'user_donut': user_donut,
+#         'fleet_donut': fleet_donut,
+#         'member_donut': member_donut,
+#         'partner_donut': partner_donut,
+#         'user_across_time_chart': user_across_time_chart
+#     }
 
-    return render(request, "users.html", context)
+#     return render(request, "users.html", context)
