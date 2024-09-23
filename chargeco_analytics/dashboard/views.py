@@ -312,6 +312,12 @@ def utilisationLeftCards(request):
     ac_avg_duration = charging_transactions[charging_transactions['power_type'] == 'AC']['totalDuration'].mean()
     dc_avg_duration = charging_transactions[charging_transactions['power_type'] == 'DC']['totalDuration'].mean()
 
+    # Handle cases where AC or DC sessions are NaN (i.e., no transactions)
+    ac_avg_duration = ac_avg_duration if not pd.isna(ac_avg_duration) else 0
+    dc_avg_duration = dc_avg_duration if not pd.isna(dc_avg_duration) else 0
+    ac_sessions = ac_sessions if ac_sessions > 0 else 0
+    dc_sessions = dc_sessions if dc_sessions > 0 else 0
+
     print(total_charging_sessions, ac_sessions, dc_sessions, ac_avg_duration, dc_avg_duration, flush=True)
 
     response = {
@@ -508,12 +514,12 @@ def byStationCards(request):
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Generate a unique cache key based on filters
-    cache_key = f"stationcards_{startDate}_{endDate}_{location}_{powerType}"
+    # cache_key = f"stationcards_{startDate}_{endDate}_{location}_{powerType}"
 
     # Load cached data if available
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
+    # cached_data = cache.get(cache_key)
+    # if cached_data:
+    #     return JsonResponse(cached_data, safe=False)
     
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -559,7 +565,7 @@ def byStationCards(request):
     }    
 
     # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
+    # cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -580,12 +586,12 @@ def byStationHour(request):
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Generate a unique cache key based on filters
-    cache_key = f"stationhour_{startDate}_{endDate}_{location}_{powerType}"
+    # cache_key = f"stationhour_{startDate}_{endDate}_{location}_{powerType}"
 
     # Load cached data if available
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
+    # cached_data = cache.get(cache_key)
+    # if cached_data:
+    #     return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -616,7 +622,7 @@ def byStationHour(request):
     }    
 
     # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
+    # cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -637,12 +643,12 @@ def byStationTimeSeriesChart(request):
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Generate a unique cache key based on filters
-    cache_key = f"stationtimeseries_{startDate}_{endDate}_{location}_{powerType}"
+    # cache_key = f"stationtimeseries_{startDate}_{endDate}_{location}_{powerType}"
 
     # Load cached data if available
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
+    # cached_data = cache.get(cache_key)
+    # if cached_data:
+    #     return JsonResponse(cached_data, safe=False)
 
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -672,7 +678,7 @@ def byStationTimeSeriesChart(request):
     }    
 
      # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
+    # cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -693,12 +699,13 @@ def byStationUtilBarChart(request):
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
 
     # Generate a unique cache key based on filters
-    cache_key = f"stationbarchart_{startDate}_{endDate}_{location}_{powerType}"
+    # cache_key = f"stationbarchart_{startDate}_{endDate}_{location}_{powerType}"
 
     # Load cached data if available
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
+    # cached_data = cache.get(cache_key)
+    # if cached_data:
+    #     return JsonResponse(cached_data, safe=False)
+
     # Load data
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
     charging_transactions, max_date, min_date = data_loader.load_real_transactions(charger_data)
@@ -732,7 +739,7 @@ def byStationUtilBarChart(request):
     }    
 
     # # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
+    # cache.set(cache_key, response, timeout=3000)
     
     return JsonResponse(response, safe=False)
 
@@ -753,18 +760,15 @@ def billingCards(request):
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
     # Filter charger_data based on powerType, price, and charger
-    if powerType == "All":
-        charger_data = charger_data
-    elif powerType == "AC":
-        charger_data = charger_data[charger_data['power_type'] == "AC"]
-    elif powerType == "DC":
-        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if powerType != "All":
+        charger_data = charger_data[charger_data['power_type'] == powerType]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
     if price != "All":
         charger_data = charger_data[charger_data['price'] == price]
-    if charger == "All":
-        charger_data = charger_data
-    else:
-        charger_data = charger_data[charger_data['evCpId'] == charger]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
+    if charger != "All":
+        # charger_charging = charger_charging[charger_charging['evse_id'].isin(charger)]
+        charger_charging = charger_charging[charger_charging['evse_id'] == charger]
 
     # Calculating average energy per month
     total_energy = sum(charger_charging['total_energy'])
@@ -774,7 +778,6 @@ def billingCards(request):
     # Calculating average cost per month
     total_cost = sum(charger_charging['total_cost'])
     average_cost_per_month = total_cost / unique_months_count
-
     
     response = {
         'average_energy_per_month': average_energy_per_month,
@@ -796,18 +799,15 @@ def billingTable(request):
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
     # Filter charger_data based on powerType, price, and charger
-    if powerType == "All":
-        charger_data = charger_data
-    elif powerType == "AC":
-        charger_data = charger_data[charger_data['power_type'] == "AC"]
-    elif powerType == "DC":
-        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if powerType != "All":
+        charger_data = charger_data[charger_data['power_type'] == powerType]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
     if price != "All":
         charger_data = charger_data[charger_data['price'] == price]
-    if charger == "All":
-        charger_data = charger_data
-    else:
-        charger_data = charger_data[charger_data['evCpId'] == charger]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
+    if charger != "All":
+        # charger_charging = charger_charging[charger_charging['evse_id'].isin(charger)]
+        charger_charging = charger_charging[charger_charging['evse_id'] == charger]
 
     energy_expenditure_df_str = charts_generator.energy_expenditure_table_json(charger_charging)
     energy_expenditure_df = json.loads(energy_expenditure_df_str)
@@ -831,18 +831,15 @@ def billingRevenueChart(request):
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
     # Filter charger_data based on powerType, price, and charger
-    if powerType == "All":
-        charger_data = charger_data
-    elif powerType == "AC":
-        charger_data = charger_data[charger_data['power_type'] == "AC"]
-    elif powerType == "DC":
-        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if powerType != "All":
+        charger_data = charger_data[charger_data['power_type'] == powerType]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
     if price != "All":
         charger_data = charger_data[charger_data['price'] == price]
-    if charger == "All":
-        charger_data = charger_data
-    else:
-        charger_data = charger_data[charger_data['evCpId'] == charger]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
+    if charger != "All":
+        # charger_charging = charger_charging[charger_charging['evse_id'].isin(charger)]
+        charger_charging = charger_charging[charger_charging['evse_id'] == charger]
 
     total_energy_cost_str = charts_generator.total_energy_cost_chart_json(charger_charging)
     total_energy_cost = json.loads(total_energy_cost_str)
@@ -866,18 +863,15 @@ def billingEnergyChart(request):
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
 
     # Filter charger_data based on powerType, price, and charger
-    if powerType == "All":
-        charger_data = charger_data
-    elif powerType == "AC":
-        charger_data = charger_data[charger_data['power_type'] == "AC"]
-    elif powerType == "DC":
-        charger_data = charger_data[charger_data['power_type'] == "DC"]
+    if powerType != "All":
+        charger_data = charger_data[charger_data['power_type'] == powerType]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
     if price != "All":
         charger_data = charger_data[charger_data['price'] == price]
-    if charger == "All":
-        charger_data = charger_data
-    else:
-        charger_data = charger_data[charger_data['evCpId'] == charger]
+        charger_charging = charger_charging[charger_charging['evse_id'].isin(charger_data['evCpId'])]
+    if charger != "All":
+        # charger_charging = charger_charging[charger_charging['evse_id'].isin(charger)]
+        charger_charging = charger_charging[charger_charging['evse_id'] == charger]
 
     total_monthly_charger_str = charts_generator.monthly_energy_consumption_chart_json(charger_charging)
     total_monthly_charger = json.loads(total_monthly_charger_str)
