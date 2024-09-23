@@ -280,8 +280,6 @@ def utilisationLeftCards(request):
     endDate = pd.to_datetime(endDate, errors='coerce')
     startDate = startDate.strftime('%d/%m/%Y %H:%M')
     endDate = endDate.strftime('%d/%m/%Y %H:%M')
-    startDate = pd.to_datetime(startDate, errors='coerce')
-    endDate = pd.to_datetime(endDate, errors='coerce')
 
     # Load data for the page
     charger_data, unique_chargers, charger_charging = data_loader.load_charger_details()
@@ -314,7 +312,8 @@ def utilisationLeftCards(request):
     ac_avg_duration = charging_transactions[charging_transactions['power_type'] == 'AC']['totalDuration'].mean()
     dc_avg_duration = charging_transactions[charging_transactions['power_type'] == 'DC']['totalDuration'].mean()
 
- 
+    print(total_charging_sessions, ac_sessions, dc_sessions, ac_avg_duration, dc_avg_duration, flush=True)
+
     response = {
         "total_charging_sessions": total_charging_sessions,
         "ac_sessions": ac_sessions,
@@ -385,12 +384,6 @@ def utilisationUtilChart(request):
     address = data.get("address")
     charger = data.get("charger")
 
-    # Load cached data if available
-    cache_key = "utilisation_util_chart"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
-
     # Convert startDate and endDate to datetime objects (include time zone handling)
     startDate = pd.to_datetime(startDate, errors='coerce', utc=True)  # Handle timezone-aware datetime
     endDate = pd.to_datetime(endDate, errors='coerce', utc=True)
@@ -439,8 +432,8 @@ def utilisationUtilChart(request):
         'utilisation_hourly_chart_data_json': utilisation_hourly_chart_data_json
     }    
 
-    # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
+    # # Cache the response data for future requests
+    # cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
@@ -454,12 +447,6 @@ def utilisationBarChart(request):
     endDate = data.get("end_date")
     address = data.get("address")
     charger = data.get("charger")
-
-    # Load cached data if available
-    cache_key = "utilisation_bar_chart"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return JsonResponse(cached_data, safe=False)
 
     # Convert startDate and endDate to datetime objects
     startDate = pd.to_datetime(startDate, errors='coerce')
@@ -487,7 +474,6 @@ def utilisationBarChart(request):
     else:
         charging_transactions = charging_transactions[charging_transactions['evCpId'] == charger]
     
-
     util_dayNight_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Day/Night', start_date=min_date, end_date=max_date)
     util_weekdayWeekend_data_json_str = charts_generator.util_bar_chart_json(charging_transactions, x_variable='Weekend/Weekday', start_date=min_date, end_date=max_date)
 
@@ -498,9 +484,6 @@ def utilisationBarChart(request):
         'util_dayNight_data_json': util_dayNight_data_json,
         'util_weekdayWeekend_data_json':util_weekdayWeekend_data_json
     }    
-
-    # Cache the response data for future requests
-    cache.set(cache_key, response, timeout=3000)
 
     return JsonResponse(response, safe=False)
 
