@@ -26,7 +26,7 @@ import axios from "axios";
 import LoadingOverlay from "./components/LoadingOverlay";
 
 function ByStation() {
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
@@ -67,7 +67,7 @@ function ByStation() {
 
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
       return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
@@ -83,7 +83,7 @@ function ByStation() {
         setIsLoading(true);
         
         const byStationCards = await axios.post(
-          "http://localhost:8000/byStationCards/",
+          `${BACKEND_URL}/byStationCards/`,
           {
             start_date: startDate,
             end_date: endDate,
@@ -101,7 +101,7 @@ function ByStation() {
         setAvgUtilisationRate(byStationCards.data.avg_util);
 
         const byStationHour = await axios.post(
-          "http://localhost:8000/byStationHour/",
+          `${BACKEND_URL}/byStationHour/`,
           {
             start_date: startDate,
             end_date: endDate,
@@ -117,7 +117,7 @@ function ByStation() {
         setByStationHour(byStationHour.data.station_hour);
 
         const byStationMonth = await axios.post(
-          "http://localhost:8000/byStationTimeSeriesChart/",
+          `${BACKEND_URL}/byStationTimeSeriesChart/`,
           {
             start_date: startDate,
             end_date: endDate,
@@ -135,7 +135,7 @@ function ByStation() {
         console.log(byStationMonth.data.util_timeseries) 
 
         const byStationBarChart = await axios.post(
-          "http://localhost:8000/byStationUtilBarChart/",
+          `${BACKEND_URL}/byStationUtilBarChart/`,
           {
             start_date: startDate,
             end_date: endDate,

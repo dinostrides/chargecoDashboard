@@ -15,7 +15,7 @@ import LoadingOverlay from './components/LoadingOverlay.jsx';
 import './lineGraph.css'; 
 
 function Pricing() {
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
@@ -35,7 +35,7 @@ function Pricing() {
 
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
       return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
@@ -50,7 +50,7 @@ function Pricing() {
       try {
         setIsLoading(true);
         
-        const pricingCards = await axios.post('http://localhost:8000/pricingCards/', {
+        const pricingCards = await axios.post(`${BACKEND_URL}/pricingCards/`, {
           start_date: startDate,
           end_date: endDate,
           power_type: powerType
@@ -62,7 +62,7 @@ function Pricing() {
 
         setAvgPrice(pricingCards.data.avg_price)
 
-        const pricingPaymentModeChart = await axios.post('http://localhost:8000/pricingPaymentModeChart/', {
+        const pricingPaymentModeChart = await axios.post(`${BACKEND_URL}/pricingPaymentModeChart/`, {
           start_date: startDate,
           end_date: endDate,
           power_type: powerType
@@ -74,7 +74,7 @@ function Pricing() {
 
         setPieChartData(pricingPaymentModeChart.data.payment_mode_donut);
 
-        const pricingUtilisationPriceChart = await axios.post('http://localhost:8000/pricingUtilisationPriceChart/', {
+        const pricingUtilisationPriceChart = await axios.post(`${BACKEND_URL}/pricingUtilisationPriceChart/`, {
           start_date: startDate,
           end_date: endDate,
           power_type: powerType

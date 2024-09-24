@@ -29,6 +29,7 @@ import ClusterMap from './components/ClusterMap';
 
 
 function Utilisation() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
@@ -69,7 +70,7 @@ function Utilisation() {
 
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
       return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
@@ -83,7 +84,7 @@ function Utilisation() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const utilisationLeftCards = await axios.post("http://localhost:8000/utilisationLeftCards/", {
+        const utilisationLeftCards = await axios.post(`${BACKEND_URL}/utilisationLeftCards/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,
@@ -100,7 +101,7 @@ function Utilisation() {
         setAvgMinPerAcSession(data.ac_avg_duration);
         setAvgMinPerDcSession(data.dc_avg_duration);
 
-        const utilisationClusterMap = await axios.post("http://localhost:8000/utilisationClusterMap/", {
+        const utilisationClusterMap = await axios.post(`${BACKEND_URL}/utilisationClusterMap/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,
@@ -114,7 +115,7 @@ function Utilisation() {
         setClusterMapData(utilisationClusterMap.data.clustermap_markers_json)
         
 
-        const utilisationUtilChart = await axios.post("http://localhost:8000/utilisationUtilChart/", {
+        const utilisationUtilChart = await axios.post(`${BACKEND_URL}/utilisationUtilChart/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,
@@ -127,7 +128,7 @@ function Utilisation() {
 
         setUtilChartData(utilisationUtilChart.data.utilisation_hourly_chart_data_json)
 
-        const utilisationBarChart = await axios.post("http://localhost:8000/utilisationBarChart/", {
+        const utilisationBarChart = await axios.post(`${BACKEND_URL}/utilisationBarChart/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,

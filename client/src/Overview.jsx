@@ -25,7 +25,9 @@ import axios from 'axios';
 import LoadingOverlay from "./components/LoadingOverlay";
 import SortableTableOverview from "./components/SortableTableOverview";
 
+
 function Overview() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
@@ -59,7 +61,7 @@ function Overview() {
 
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
       return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
@@ -78,7 +80,7 @@ function Overview() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const map_coordinates = await axios.post('http://localhost:8000/overviewMap/', {
+        const map_coordinates = await axios.post(`${BACKEND_URL}/overviewMap/`, {
           location_status: locationStatus,
           power_type: powerType
         }, {
@@ -90,7 +92,7 @@ function Overview() {
         const data = JSON.parse(dataString);
         setMapData(data);
 
-        const rightCards = await axios.post('http://localhost:8000/overviewRightCards/', {
+        const rightCards = await axios.post(`${BACKEND_URL}/overviewRightCards/`, {
           location_status: locationStatus,
           power_type: powerType
         }, {
@@ -102,7 +104,7 @@ function Overview() {
         setTotalLocations(rightCards.data.total_locations);
         setTotalChargingPoints(rightCards.data.total_charging_points);
 
-        const leftCards = await axios.post('http://localhost:8000/overviewLeftCards/', {
+        const leftCards = await axios.post(`${BACKEND_URL}/overviewLeftCards/`, {
           start_date: startDate,
           end_date: endDate
         }, {
@@ -116,7 +118,7 @@ function Overview() {
         setAvgUniqueVehiclesPerLocation(leftCards.data.avg_unique_vehicles_per_location);
         setAvgUtilisation(leftCards.data.avg_utilisation);
 
-        const tableResponse = await axios.post('http://localhost:8000/overviewTable/', {
+        const tableResponse = await axios.post(`${BACKEND_URL}/overviewTable/`, {
           start_date: startDate,
           end_date: endDate
         }, {

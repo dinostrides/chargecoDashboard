@@ -17,7 +17,7 @@ import './lineGraph.css';
 import chargers from "./datasets/chargers.json";
 
 function Users() {
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
 
@@ -66,7 +66,7 @@ function Users() {
 
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
       return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
@@ -81,7 +81,7 @@ function Users() {
       try {
         setIsLoading(true);
         
-        const userCards = await axios.post("http://localhost:8000/usersCards/", {
+        const userCards = await axios.post(`${BACKEND_URL}/usersCards/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,
@@ -100,7 +100,7 @@ function Users() {
 
         
 
-        const allData = await axios.post("http://localhost:8000/usersDonutCharts/", {
+        const allData = await axios.post(`${BACKEND_URL}/usersDonutCharts/`, {
           start_date: startDate,
           end_date: endDate,
           address: address,

@@ -5,34 +5,24 @@ import { Box, Typography, Grid, Stack, FormControl, InputLabel, Select, MenuItem
 import OverviewCard from './components/cards/OverviewCard'
 import SortableTableBilling from './components/SortableTableBilling'
 import { BarChart } from '@mui/x-charts/BarChart';
-import { LineChart } from '@mui/x-charts/LineChart';
 import chargers from "./datasets/chargers.json";
-import dayjs from "dayjs";
 import axios from 'axios';
 import LoadingOverlay from './components/LoadingOverlay'
 
 function Billing() {
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken'))
-
   const [isLoading, setIsLoading] = useState(true);
-
   const [powerType, setPowerType] = useState("All");
   const [price, setPrice] = useState("All");
   const [charger, setCharger] = useState("All");
-
   const [billingRevenueChartData, setBillingRevenueChartData] = useState([]);
-  const [billingEnergyChartData, setBillingEnergyChartData] = useState([]);
-
   const totalEnergies = billingRevenueChartData.map(data => data.total_energy);
   const totalRevenue = billingRevenueChartData.map(data => data.total_cost);
   const monthYear = billingRevenueChartData.map(data => data.month);
-
   const [avgEnergyPerMonthCard, setAvgEnergyPerMonthCard] = useState();
   const [avgCostPerMonthCard, setAvgCostPerMonthCard] = useState();
-
-  // Table data
   const [tableData, setTableData] = useState([]);
 
   const handlePowerTypeChange = (event) => {
@@ -47,13 +37,12 @@ function Billing() {
     setCharger(event.target.value);
   }
 
-
   const refreshAccessToken = async (refreshToken) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+      const response = await axios.post(`${BACKEND_URL}/api/token/refresh/`, {
         refresh: refreshToken
       });
-      return response.data;  // { access: newAccessToken, refresh: newRefreshToken }
+      return response.data;
     } catch (error) {
       console.error('Failed to refresh token', error);
       throw error;
@@ -65,7 +54,7 @@ function Billing() {
       try {
         setIsLoading(true);
         
-        const billingCards = await axios.post("http://localhost:8000/billingCards/", {
+        const billingCards = await axios.post(`${BACKEND_URL}/billingCards/`, {
           power_type: powerType,
           price: price,
           charger: charger
@@ -78,7 +67,7 @@ function Billing() {
         setAvgEnergyPerMonthCard(billingCards.data.average_energy_per_month)
         setAvgCostPerMonthCard(billingCards.data.average_cost_per_month)
         
-        const tableResponse = await axios.post("http://localhost:8000/billingTable/", {
+        const tableResponse = await axios.post(`${BACKEND_URL}/billingTable/`, {
           power_type: powerType,
           price: price,
           charger: charger
@@ -91,7 +80,7 @@ function Billing() {
         const tableDataArr = tableResponse.data;
         setTableData(tableDataArr.energy_expenditure_df);
 
-        const billingRevenueChart = await axios.post("http://localhost:8000/billingRevenueChart/", {
+        const billingRevenueChart = await axios.post(`${BACKEND_URL}/billingRevenueChart/`, {
           power_type: powerType,
           price: price,
           charger: charger
@@ -102,19 +91,6 @@ function Billing() {
         });
 
         setBillingRevenueChartData(billingRevenueChart.data.total_energy_cost);
-
-        // const billingEnergyChart = await axios.post("http://localhost:8000/billingEnergyChart/", {
-        //   power_type: powerType,
-        //   price: price,
-        //   charger: charger
-        // }, {
-        //   headers: {
-        //     'Authorization': `Bearer ${accessToken}`
-        //   }
-        // })
-        // const reformattedData = reformatBillingData(billingEnergyChart.data.total_monthly_charger);
-        // console.log(reformattedData);
-        // setBillingEnergyChartData(reformattedData)
 
       } catch (error) {
         if (error.response?.data?.detail === "Invalid or expired token") {
@@ -136,40 +112,6 @@ function Billing() {
 
     fetchData();
   }, [powerType, price, charger, accessToken]);
-
-
-
-
-
-
-  function reformatBillingData(billingEnergyChartData) {
-    // Step 1: Initialize the reformatted data structure
-    const chargerData = {};
-
-    // Step 2: Loop through each data entry to populate the structure
-    billingEnergyChartData.forEach(item => {
-      const monthIndex = new Date(item.month).getMonth(); // Get the month index (0-11)
-
-      Object.keys(item).forEach(key => {
-        if (key !== 'month') {
-          if (!chargerData[key]) {
-            // Initialize the array with 12 zeros if it doesn't exist
-            chargerData[key] = Array(12).fill(0);
-          }
-          // Update the monthly consumption
-          chargerData[key][monthIndex] = item[key];
-        }
-      });
-    });
-
-    // Convert to the desired array format
-    return Object.keys(chargerData).map(chargerId => ({
-      chargerId,
-      data: chargerData[chargerId]
-    }));
-  }
-
-
 
   return (
 
